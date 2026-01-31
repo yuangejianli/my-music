@@ -2,72 +2,45 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-
-  <!-- APlayer 样式 -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css">
-
-  <!-- ColorThief（变色龙） -->
   <script src="https://cdn.jsdelivr.net/npm/colorthief@2.3.2/dist/color-thief.umd.js"></script>
-
   <style>
-    body {
-      margin: 0;
-      background: transparent;
-    }
+    body { margin: 0; background: transparent; }
 
+    /* 1. 直角设计 */
     .aplayer {
       border-radius: 0 !important;
       box-shadow: none !important;
       border: 1px solid #eee !important;
     }
 
+    /* 2. 列表细条 */
     .aplayer .aplayer-list ol li .aplayer-list-cur {
       width: 2px !important;
     }
 
+    /* 3. 正在播放行的灰色背景 */
     .aplayer .aplayer-list ol li.aplayer-list-light {
       background: #e9e9e9 !important;
     }
 
-    /* =========================
-       ✅ 正常版列表：可拉高 + 可滚动
-       ========================= */
+    /* 4. ✅ 锁定高度为 3 首歌左右（每行约33px，3首约100px） */
     .aplayer .aplayer-list {
+      max-height: 100px !important; 
       overflow-y: auto !important;
     }
 
-    /* =========================
-       ✅ 隐藏右侧滚动条（但保留滚动）
-       ========================= */
-
-    /* Chrome / Edge / Safari */
-    .aplayer .aplayer-list::-webkit-scrollbar {
-      width: 0;
-      height: 0;
-    }
-
-    /* Firefox */
-    .aplayer .aplayer-list {
-      scrollbar-width: none;
-    }
-
-    /* IE / 旧 Edge */
-    .aplayer .aplayer-list {
-      -ms-overflow-style: none;
-    }
+    /* 5. 隐藏滚动条但保持滚动功能 */
+    .aplayer .aplayer-list::-webkit-scrollbar { width: 0; height: 0; }
+    .aplayer .aplayer-list { scrollbar-width: none; }
   </style>
 </head>
 
 <body>
   <div id="aplayer"></div>
-
-  <!-- APlayer -->
   <script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script>
 
   <script>
-    /* =========================
-       音乐列表
-       ========================= */
     const audioList = [
       { name: 'Her Silence', artist: '何真真', url: 'music/何真真 - Her Silence.mp3', cover: 'cover/何真真 - Her Silence.jpg' },
       { name: 'Hurricanes', artist: 'Dido', url: 'music/Dido - Hurricanes.mp3', cover: 'cover/Dido - Hurricanes.jpg' },
@@ -78,60 +51,47 @@
       { name: 'Rewrite The Stars', artist: 'Zendaya', url: 'music/Zendaya - Rewrite The Stars.mp3', cover: 'cover/Zendaya - Rewrite The Stars.jpg' }
     ];
 
-    /* =========================
-       APlayer 初始化
-       ========================= */
     const ap = new APlayer({
       container: document.getElementById('aplayer'),
       listFolded: false,
+      listMaxHeight: '100px', // ✅ 这里必须设置，APlayer 才会自动执行滚动计算
       audio: audioList,
       theme: '#e9e9e9'
     });
 
     /* =========================
-       变色龙（稳定版，勿动）
+       自动滚动修正逻辑
+       ========================= */
+    ap.on('listswitch', () => {
+      // 每次切歌，强制让列表滚动到当前选中的歌曲
+      setTimeout(() => {
+        const activeItem = document.querySelector('.aplayer-list-light');
+        if (activeItem) {
+          activeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }, 100);
+      updateThemeSafe();
+    });
+
+    /* =========================
+       变色龙逻辑（保留你的稳定版）
        ========================= */
     const colorThief = new ColorThief();
-    const DEFAULT_THEME = '#e9e9e9';
-    let themeTimer = null;
-
-    function updateThemeSafe(retry = 0) {
+    function updateThemeSafe() {
       const index = ap.list.index;
       const imgUrl = audioList[index]?.cover;
       if (!imgUrl) return;
 
-      clearTimeout(themeTimer);
-      themeTimer = setTimeout(() => {
-        const img = new Image();
-        img.crossOrigin = 'Anonymous';
-        img.referrerPolicy = 'no-referrer';
-
-        img.onload = () => {
-          try {
-            const c = colorThief.getColor(img);
-            ap.theme(`rgb(${c[0]}, ${c[1]}, ${c[2]})`, index);
-          } catch (e) {
-            retry < 3
-              ? setTimeout(() => updateThemeSafe(retry + 1), 250)
-              : ap.theme(DEFAULT_THEME, index);
-          }
-        };
-
-        img.onerror = () => {
-          retry < 3
-            ? setTimeout(() => updateThemeSafe(retry + 1), 250)
-            : ap.theme(DEFAULT_THEME, index);
-        };
-
-        img.src = imgUrl + (imgUrl.includes('?') ? '&' : '?') + 'cb=' + Date.now();
-      }, 60);
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.onload = () => {
+        const c = colorThief.getColor(img);
+        ap.theme(`rgb(${c[0]}, ${c[1]}, ${c[2]})`, index);
+      };
+      img.src = imgUrl + (imgUrl.includes('?') ? '&' : '?') + 'cb=' + Date.now();
     }
 
-    ap.on('listswitch', () => updateThemeSafe(0));
-
-    window.addEventListener('load', () => {
-      setTimeout(() => updateThemeSafe(0), 300);
-    });
+    window.addEventListener('load', () => setTimeout(updateThemeSafe, 300));
   </script>
 </body>
 </html>
