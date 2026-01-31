@@ -5,53 +5,59 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css">
   <script src="https://cdn.jsdelivr.net/npm/colorthief@2.3.2/dist/color-thief.umd.js"></script>
   <style>
-    /* 解决问题 1: 隐藏全局滚动条 */
+    /* 1. 彻底解决外部滚动条：强制隐藏 body 溢出 */
     html, body { 
       margin: 0; 
-      padding: 0;
+      padding: 0; 
+      overflow: hidden; /* 核心：禁止出现右侧手动滚动条 */
       background: transparent; 
-      overflow: hidden; /* 彻底禁止外部滚动条出现 */
+      height: 100%;
     }
 
-    /* 解决问题 3: 恢复浮动效果 & 细节调整 */
+    /* 2. 还原原版直角 & 高级感微阴影 */
     .aplayer {
-      border-radius: 6px !important; /* 稍微给一点圆角，更符合 Notion 审美 */
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important; /* 浮现阴影效果 */
-      border: 1px solid rgba(0,0,0,0.05) !important; /* 极细边框，比原有的 #eee 更通透 */
-      margin: 10px !important; /* 给阴影留出呼吸空间，防止被切断 */
+      margin: 2px 10px 10px 2px !important; /* 给右侧和底部阴影留出显示空间 */
+      border-radius: 0 !important; /* 彻底直角 */
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1) !important; /* 像素级对齐原版微弱阴影 */
+      border: 1px solid #eee !important;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     }
 
-    /* 解决问题 2: 消除列表最后一首歌的底线及多余线条 */
+    /* 3. 解决线的问题：对齐原版列表边框 */
     .aplayer .aplayer-list ol li {
-      border-top: none !important; /* 移除列表项上边框 */
-      border-bottom: 1px solid #f0f0f0 !important; /* 改用更淡的底线 */
+      border-top: 1px solid #f0f0f0 !important; /* 线条调淡 */
     }
-    
+    .aplayer .aplayer-list ol li:first-child {
+      border-top: none !important; /* 第一项上方不留线 */
+    }
     .aplayer .aplayer-list ol li:last-child {
-      border-bottom: none !important; /* 彻底消除最后一条线 */
+      border-bottom: none !important; /* 彻底消除最后一项的底线 */
     }
-
-    /* 列表内正在播放行的颜色调整 */
-    .aplayer .aplayer-list ol li.aplayer-list-light {
-      background: #f8f8f8 !important;
-    }
-
-    /* 列表细条指示器 */
-    .aplayer .aplayer-list ol li .aplayer-list-cur {
-      width: 3px !important;
-    }
-
-    /* 1. 隐藏列表内部滚动条 (针对问题1的内部表现) */
     .aplayer .aplayer-list {
-      max-height: 100px !important; 
+      border-bottom: none !important; /* 消除容器底边 */
+    }
+
+    /* 4. 隐藏播放列表内部滚动条 */
+    .aplayer .aplayer-list {
+      max-height: 100px !important; /* 锁定约 3 首歌高度 */
       overflow-y: auto !important;
-      scrollbar-width: none; /* Firefox */
-      -ms-overflow-style: none; /* IE/Edge */
+      scrollbar-width: none !important; /* Firefox */
+      -ms-overflow-style: none !important; /* IE/Edge */
     }
     .aplayer .aplayer-list::-webkit-scrollbar {
-      display: none; /* Chrome/Safari */
+      display: none !important; /* Chrome/Safari */
       width: 0 !important;
-      height: 0 !important;
+    }
+
+    /* 5. 正在播放行的灰色背景（对齐原版 #f7f7f7） */
+    .aplayer .aplayer-list ol li.aplayer-list-light {
+      background: #f7f7f7 !important;
+    }
+    
+    /* 列表左侧激活状态的细条 */
+    .aplayer .aplayer-list ol li .aplayer-list-cur {
+      width: 2px !important;
+      background: #444 !important; /* 调暗一点更有高级感 */
     }
   </style>
 </head>
@@ -74,16 +80,13 @@
     const ap = new APlayer({
       container: document.getElementById('aplayer'),
       listFolded: false,
-      listMaxHeight: '100px', // ✅ 这里必须设置，APlayer 才会自动执行滚动计算
+      listMaxHeight: '100px',
       audio: audioList,
       theme: '#e9e9e9'
     });
 
-    /* =========================
-       自动滚动修正逻辑
-       ========================= */
+    // 自动滚动修正
     ap.on('listswitch', () => {
-      // 每次切歌，强制让列表滚动到当前选中的歌曲
       setTimeout(() => {
         const activeItem = document.querySelector('.aplayer-list-light');
         if (activeItem) {
@@ -93,9 +96,7 @@
       updateThemeSafe();
     });
 
-    /* =========================
-       变色龙逻辑（保留你的稳定版）
-       ========================= */
+    // 变色龙逻辑
     const colorThief = new ColorThief();
     function updateThemeSafe() {
       const index = ap.list.index;
