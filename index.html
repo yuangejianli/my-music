@@ -12,22 +12,18 @@
       background: transparent;
     }
 
-    /* =========================
-       播放器整体：克制微浮起
-       ========================= */
+    /* 1) ✅ 阴影：非常非常细微（接近原版，只多一点点空气感） */
     .aplayer {
       border-radius: 0 !important;
       border: none !important;
       box-shadow:
-        0 1px 2px rgba(0,0,0,0.05),
-        0 4px 12px rgba(0,0,0,0.06) !important;
+        0 1px 1px rgba(0,0,0,0.03),
+        0 3px 10px rgba(0,0,0,0.04) !important;
       transition: box-shadow 0.25s ease;
       --zinnia-theme: #e9e9e9;
     }
 
-    /* =========================
-       列表高度 & 滚动
-       ========================= */
+    /* 2) ✅ 列表区域：保持你现在的高度与滚动 */
     .aplayer .aplayer-list {
       max-height: 100px !important;
       overflow: hidden !important;
@@ -41,16 +37,13 @@
       border: none !important;
     }
 
-    /* =========================
-       🚫 彻底隐藏滚动条
-       ========================= */
+    /* 3) ✅ 隐藏滚动条（你已成功那套，继续保留“地毯式”） */
     .aplayer .aplayer-list,
     .aplayer .aplayer-list ol,
     .aplayer .aplayer-list * {
       scrollbar-width: none !important;
       -ms-overflow-style: none !important;
     }
-
     .aplayer .aplayer-list::-webkit-scrollbar,
     .aplayer .aplayer-list ol::-webkit-scrollbar,
     .aplayer .aplayer-list *::-webkit-scrollbar {
@@ -59,26 +52,17 @@
       display: none !important;
     }
 
-    /* =========================
-       ❗关键修复：
-       不画“列表分割线”
-       ========================= */
+    /* 4) ✅ 你现在“没有中间分割线”的状态：保留 */
     .aplayer .aplayer-list ol li {
       border: none !important;
     }
 
-    /* =========================
-       ✅ 只保留 APlayer 原生逻辑：
-       当前播放项的“上边界线”
-       ========================= */
+    /* 5) ✅ 当前播放行底色（保留你现在的风格） */
     .aplayer .aplayer-list ol li.aplayer-list-light {
       background: #f0f0f0 !important;
-      border-top: 1px solid #f5f5f5 !important;
     }
 
-    /* =========================
-       左侧小竖条：跟随变色龙
-       ========================= */
+    /* 6) ✅ 左侧小竖条：吃 CSS 变量，跟随变色龙 */
     .aplayer .aplayer-list ol li .aplayer-list-cur {
       width: 2px !important;
       background: var(--zinnia-theme) !important;
@@ -111,9 +95,55 @@
     });
 
     const colorThief = new ColorThief();
+    let themeTimer = null;
+
+    // ✅ 不信 ap.list.index，直接从当前高亮 li 读 data-index（解决“竖条慢一拍”）
+    function getActiveIndex() {
+      const active = document.querySelector('.aplayer .aplayer-list li.aplayer-list-light');
+      if (!active) return ap.list.index;
+
+      const di = active.getAttribute('data-index');
+      if (di !== null && di !== '') {
+        const n = Number(di);
+        if (!Number.isNaN(n)) return n;
+      }
+
+      // 兜底：如果没有 data-index，就用 ap.list.index
+      return ap.list.index;
+    }
+
+    function updateThemeSafe() {
+      clearTimeout(themeTimer);
+      themeTimer = setTimeout(() => {
+        const index = getActiveIndex();
+        const imgUrl = audioList[index]?.cover;
+        if (!imgUrl) return;
+
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.referrerPolicy = 'no-referrer';
+
+        img.onload = () => {
+          try {
+            const c = colorThief.getColor(img);
+            const themeColor = `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
+
+            // APlayer 自己的主题色（进度条等）
+            ap.theme(themeColor, index);
+
+            // 左侧竖条吃这个变量，保证同步
+            ap.container.style.setProperty('--zinnia-theme', themeColor);
+          } catch (e) {
+            // 失败不动，保持现状
+          }
+        };
+
+        img.src = imgUrl + (imgUrl.includes('?') ? '&' : '?') + 'cb=' + Date.now();
+      }, 60);
+    }
 
     ap.on('listswitch', () => {
-      // 自动滚动（保留）
+      // ✅ 自动滚动（保留你原来的）
       setTimeout(() => {
         const activeItem = document.querySelector('.aplayer-list-light');
         if (activeItem) {
@@ -121,30 +151,12 @@
         }
       }, 100);
 
-      updateTheme();
+      // ✅ 主题色（修复 index 慢一拍）
+      updateThemeSafe();
     });
 
-    function updateTheme() {
-      const index = ap.list.index;
-      const imgUrl = audioList[index]?.cover;
-      if (!imgUrl) return;
-
-      const img = new Image();
-      img.crossOrigin = 'Anonymous';
-
-      img.onload = () => {
-        const c = colorThief.getColor(img);
-        const themeColor = `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
-
-        ap.theme(themeColor, index);
-        ap.container.style.setProperty('--zinnia-theme', themeColor);
-      };
-
-      img.src = imgUrl + '?' + Date.now();
-    }
-
     window.addEventListener('load', () => {
-      setTimeout(updateTheme, 300);
+      setTimeout(updateThemeSafe, 300);
     });
   </script>
 </body>
