@@ -2,56 +2,86 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
+
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css">
   <script src="https://cdn.jsdelivr.net/npm/colorthief@2.3.2/dist/color-thief.umd.js"></script>
 
   <style>
-    body { margin: 15px; background: transparent; } /* 留点边距方便显示阴影 */
+    body {
+      margin: 15px;
+      background: transparent;
+    }
 
-    /* 1) ✅ 浮起效果 + 直角（保留） */
+    /* =========================
+       1️⃣ 播放器整体：克制的“微浮起”
+       （参考原版，只稍微抬一点点）
+       ========================= */
     .aplayer {
       border-radius: 0 !important;
       border: none !important;
-      box-shadow: 0 10px 30px -10px rgba(0,0,0,0.2) !important;
-      transition: all 0.3s ease;
+      box-shadow:
+        0 1px 2px rgba(0,0,0,0.05),
+        0 4px 12px rgba(0,0,0,0.06) !important;
+      transition: box-shadow 0.25s ease;
+      --zinnia-theme: #e9e9e9;
     }
 
-    /* 2) ✅ 列表区域滚动 + 隐藏滚动条（关键：.aplayer-list 和 ol 都要处理） */
+    /* =========================
+       2️⃣ 列表高度 & 滚动逻辑（保留）
+       ========================= */
     .aplayer .aplayer-list {
       max-height: 100px !important;
-      overflow: hidden !important; /* 外层不滚，避免出现双滚动条 */
+      overflow: hidden !important;
     }
+
     .aplayer .aplayer-list ol {
       max-height: 100px !important;
-      overflow-y: auto !important;  /* 真正滚动放在 ol */
-      scrollbar-width: none !important; /* Firefox */
-      -ms-overflow-style: none !important; /* IE/旧Edge */
-      border: none !important; /* ✅ 干掉 ol 自带的边线，避免底部多一条线 */
+      overflow-y: auto !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      border: none !important;
     }
-    .aplayer .aplayer-list ol::-webkit-scrollbar {
+
+    /* =========================
+       3️⃣ 🚫 彻底隐藏滚动条（保留）
+       ========================= */
+    .aplayer .aplayer-list,
+    .aplayer .aplayer-list ol,
+    .aplayer .aplayer-list * {
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+    }
+
+    .aplayer .aplayer-list::-webkit-scrollbar,
+    .aplayer .aplayer-list ol::-webkit-scrollbar,
+    .aplayer .aplayer-list *::-webkit-scrollbar {
       width: 0 !important;
       height: 0 !important;
       display: none !important;
     }
 
-    /* 3) ✅ 分割线：统一用 border-bottom，彻底消灭“最后一行多余线” */
+    /* =========================
+       4️⃣ 行分割线（保留、干净）
+       ========================= */
     .aplayer .aplayer-list ol li {
       border-top: none !important;
       border-bottom: 1px solid #f5f5f5 !important;
     }
+
     .aplayer .aplayer-list ol li:last-child {
       border-bottom: none !important;
     }
 
-    /* 4) ✅ 激活行颜色（保留你现在的） */
+    /* =========================
+       5️⃣ 当前播放行
+       ========================= */
     .aplayer .aplayer-list ol li.aplayer-list-light {
       background: #f0f0f0 !important;
     }
 
-    /* 5) ✅ 左侧小竖条：强制跟随“变色龙主题色” */
-    .aplayer {
-      --zinnia-theme: #e9e9e9; /* 默认值，JS 会动态更新 */
-    }
+    /* =========================
+       6️⃣ 左侧小竖条：跟随变色龙
+       ========================= */
     .aplayer .aplayer-list ol li .aplayer-list-cur {
       width: 2px !important;
       background: var(--zinnia-theme) !important;
@@ -86,7 +116,6 @@
     const colorThief = new ColorThief();
 
     ap.on('listswitch', () => {
-      // ✅ 自动滚动（保留你现在的）
       setTimeout(() => {
         const activeItem = document.querySelector('.aplayer-list-light');
         if (activeItem) {
@@ -109,17 +138,16 @@
         const c = colorThief.getColor(img);
         const themeColor = `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
 
-        // ✅ APlayer 原本的变色龙（保留）
         ap.theme(themeColor, index);
-
-        // ✅ 额外同步给左侧小竖条用（修复它变黑的问题）
         ap.container.style.setProperty('--zinnia-theme', themeColor);
       };
 
       img.src = imgUrl + '?' + Date.now();
     }
 
-    window.addEventListener('load', () => setTimeout(updateTheme, 300));
+    window.addEventListener('load', () => {
+      setTimeout(updateTheme, 300);
+    });
   </script>
 </body>
 </html>
