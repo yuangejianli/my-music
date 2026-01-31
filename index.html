@@ -5,34 +5,54 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css">
   <script src="https://cdn.jsdelivr.net/npm/colorthief@2.3.2/dist/color-thief.umd.js"></script>
   <style>
-    body { margin: 0; background: transparent; }
+    /* 解决问题 1: 隐藏全局滚动条 */
+    html, body { 
+      margin: 0; 
+      padding: 0;
+      background: transparent; 
+      overflow: hidden; /* 彻底禁止外部滚动条出现 */
+    }
 
-    /* 1. 直角设计 */
+    /* 解决问题 3: 恢复浮动效果 & 细节调整 */
     .aplayer {
-      border-radius: 0 !important;
-      box-shadow: none !important;
-      border: 1px solid #eee !important;
+      border-radius: 6px !important; /* 稍微给一点圆角，更符合 Notion 审美 */
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important; /* 浮现阴影效果 */
+      border: 1px solid rgba(0,0,0,0.05) !important; /* 极细边框，比原有的 #eee 更通透 */
+      margin: 10px !important; /* 给阴影留出呼吸空间，防止被切断 */
     }
 
-    /* 2. 列表细条 */
-    .aplayer .aplayer-list ol li .aplayer-list-cur {
-      width: 2px !important;
+    /* 解决问题 2: 消除列表最后一首歌的底线及多余线条 */
+    .aplayer .aplayer-list ol li {
+      border-top: none !important; /* 移除列表项上边框 */
+      border-bottom: 1px solid #f0f0f0 !important; /* 改用更淡的底线 */
+    }
+    
+    .aplayer .aplayer-list ol li:last-child {
+      border-bottom: none !important; /* 彻底消除最后一条线 */
     }
 
-    /* 3. 正在播放行的灰色背景 */
+    /* 列表内正在播放行的颜色调整 */
     .aplayer .aplayer-list ol li.aplayer-list-light {
-      background: #e9e9e9 !important;
+      background: #f8f8f8 !important;
     }
 
-    /* 4. ✅ 锁定高度为 3 首歌左右（每行约33px，3首约100px） */
+    /* 列表细条指示器 */
+    .aplayer .aplayer-list ol li .aplayer-list-cur {
+      width: 3px !important;
+    }
+
+    /* 1. 隐藏列表内部滚动条 (针对问题1的内部表现) */
     .aplayer .aplayer-list {
       max-height: 100px !important; 
       overflow-y: auto !important;
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE/Edge */
     }
-
-    /* 5. 隐藏滚动条但保持滚动功能 */
-    .aplayer .aplayer-list::-webkit-scrollbar { width: 0; height: 0; }
-    .aplayer .aplayer-list { scrollbar-width: none; }
+    .aplayer .aplayer-list::-webkit-scrollbar {
+      display: none; /* Chrome/Safari */
+      width: 0 !important;
+      height: 0 !important;
+    }
   </style>
 </head>
 
