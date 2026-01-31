@@ -12,18 +12,19 @@
       background: transparent;
     }
 
-    /* 1) ✅ 阴影：非常非常细微（接近原版，只多一点点空气感） */
+    /* 1) ✅ 阴影：更接近原版（有存在感但不浮夸） */
     .aplayer {
       border-radius: 0 !important;
       border: none !important;
       box-shadow:
-        0 1px 1px rgba(0,0,0,0.03),
-        0 3px 10px rgba(0,0,0,0.04) !important;
+        0 0 0 1px rgba(0,0,0,0.06),     /* 轻微边缘层次（像原版的“框感”） */
+        0 8px 22px rgba(0,0,0,0.10) !important; /* 轻柔扩散（不会飘） */
       transition: box-shadow 0.25s ease;
       --zinnia-theme: #e9e9e9;
+      background: #fff; /* 保险：防止透明导致阴影观感怪 */
     }
 
-    /* 2) ✅ 列表区域：保持你现在的高度与滚动 */
+    /* 2) ✅ 列表区域：保持高度与滚动 */
     .aplayer .aplayer-list {
       max-height: 100px !important;
       overflow: hidden !important;
@@ -37,7 +38,7 @@
       border: none !important;
     }
 
-    /* 3) ✅ 隐藏滚动条（你已成功那套，继续保留“地毯式”） */
+    /* 3) ✅ 隐藏滚动条（保留） */
     .aplayer .aplayer-list,
     .aplayer .aplayer-list ol,
     .aplayer .aplayer-list * {
@@ -52,17 +53,27 @@
       display: none !important;
     }
 
-    /* 4) ✅ 你现在“没有中间分割线”的状态：保留 */
+    /* 4) ✅ 分割线：不用 border（避免之前的“多余线/跑位”）
+       - 给每个 li 用背景渐变画底部 1px 线
+       - 最后一项关闭
+    */
     .aplayer .aplayer-list ol li {
       border: none !important;
+      background-image: linear-gradient(to bottom, transparent calc(100% - 1px), #f7f7f7 0) !important;
+      background-size: 100% 100% !important;
+      background-repeat: no-repeat !important;
+      background-position: 0 0 !important;
+    }
+    .aplayer .aplayer-list ol li:last-child {
+      background-image: none !important;
     }
 
-    /* 5) ✅ 当前播放行底色（保留你现在的风格） */
+    /* 5) ✅ 当前播放行底色（保留） */
     .aplayer .aplayer-list ol li.aplayer-list-light {
-      background: #f0f0f0 !important;
+      background-color: #f0f0f0 !important;
     }
 
-    /* 6) ✅ 左侧小竖条：吃 CSS 变量，跟随变色龙 */
+    /* 6) ✅ 左侧小竖条：跟随变色龙 */
     .aplayer .aplayer-list ol li .aplayer-list-cur {
       width: 2px !important;
       background: var(--zinnia-theme) !important;
@@ -97,7 +108,6 @@
     const colorThief = new ColorThief();
     let themeTimer = null;
 
-    // ✅ 不信 ap.list.index，直接从当前高亮 li 读 data-index（解决“竖条慢一拍”）
     function getActiveIndex() {
       const active = document.querySelector('.aplayer .aplayer-list li.aplayer-list-light');
       if (!active) return ap.list.index;
@@ -107,8 +117,6 @@
         const n = Number(di);
         if (!Number.isNaN(n)) return n;
       }
-
-      // 兜底：如果没有 data-index，就用 ap.list.index
       return ap.list.index;
     }
 
@@ -128,14 +136,9 @@
             const c = colorThief.getColor(img);
             const themeColor = `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
 
-            // APlayer 自己的主题色（进度条等）
             ap.theme(themeColor, index);
-
-            // 左侧竖条吃这个变量，保证同步
             ap.container.style.setProperty('--zinnia-theme', themeColor);
-          } catch (e) {
-            // 失败不动，保持现状
-          }
+          } catch (e) {}
         };
 
         img.src = imgUrl + (imgUrl.includes('?') ? '&' : '?') + 'cb=' + Date.now();
@@ -143,7 +146,6 @@
     }
 
     ap.on('listswitch', () => {
-      // ✅ 自动滚动（保留你原来的）
       setTimeout(() => {
         const activeItem = document.querySelector('.aplayer-list-light');
         if (activeItem) {
@@ -151,7 +153,6 @@
         }
       }, 100);
 
-      // ✅ 主题色（修复 index 慢一拍）
       updateThemeSafe();
     });
 
