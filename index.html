@@ -13,8 +13,7 @@
     }
 
     /* =========================
-       1️⃣ 播放器整体：克制的“微浮起”
-       （参考原版，只稍微抬一点点）
+       播放器整体：克制微浮起
        ========================= */
     .aplayer {
       border-radius: 0 !important;
@@ -27,7 +26,7 @@
     }
 
     /* =========================
-       2️⃣ 列表高度 & 滚动逻辑（保留）
+       列表高度 & 滚动
        ========================= */
     .aplayer .aplayer-list {
       max-height: 100px !important;
@@ -43,7 +42,7 @@
     }
 
     /* =========================
-       3️⃣ 🚫 彻底隐藏滚动条（保留）
+       🚫 彻底隐藏滚动条
        ========================= */
     .aplayer .aplayer-list,
     .aplayer .aplayer-list ol,
@@ -61,26 +60,24 @@
     }
 
     /* =========================
-       4️⃣ 行分割线（保留、干净）
+       ❗关键修复：
+       不画“列表分割线”
        ========================= */
     .aplayer .aplayer-list ol li {
-      border-top: none !important;
-      border-bottom: 1px solid #f5f5f5 !important;
-    }
-
-    .aplayer .aplayer-list ol li:last-child {
-      border-bottom: none !important;
+      border: none !important;
     }
 
     /* =========================
-       5️⃣ 当前播放行
+       ✅ 只保留 APlayer 原生逻辑：
+       当前播放项的“上边界线”
        ========================= */
     .aplayer .aplayer-list ol li.aplayer-list-light {
       background: #f0f0f0 !important;
+      border-top: 1px solid #f5f5f5 !important;
     }
 
     /* =========================
-       6️⃣ 左侧小竖条：跟随变色龙
+       左侧小竖条：跟随变色龙
        ========================= */
     .aplayer .aplayer-list ol li .aplayer-list-cur {
       width: 2px !important;
@@ -116,6 +113,7 @@
     const colorThief = new ColorThief();
 
     ap.on('listswitch', () => {
+      // 自动滚动（保留）
       setTimeout(() => {
         const activeItem = document.querySelector('.aplayer-list-light');
         if (activeItem) {
