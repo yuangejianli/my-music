@@ -2,23 +2,26 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <title>Music Player Test</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css">
-    <style>body { margin: 0; background: transparent; }</style>
 </head>
-<body>
+<body style="background: #f4f4f4; padding: 20px;">
+
+    <h1 style="color: red;">如果你能看到这行红色的字，说明网页生效了！</h1>
+
     <div id="aplayer"></div>
+
     <script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script>
     <script>
-        // 这个版本不自动扫文件夹，我们手动写死两首歌测试
         const ap = new APlayer({
             container: document.getElementById('aplayer'),
             listFolded: false,
             audio: [
                 {
-                    name: '测试歌曲 1',
+                    name: '测试歌曲',
                     artist: '测试歌手',
-                    url: 'music/FictionJunction - 沙尘的彼方.mp3', // 👈 确保这里的文件名和你music文件夹里的一模一样！
-                    cover: 'cover/FictionJunction - 沙尘的彼方.jpg'
+                    url: 'music/FictionJunction - 沙尘的彼方.mp3', // 👈 只要这一行文件名对，就能响
+                    cover: ''
                 }
             ]
         });
