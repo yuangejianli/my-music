@@ -29,10 +29,13 @@
       background: #e9e9e9 !important;
     }
 
-    /* ✅ 播放列表可滚动（高度按需改） */
-    .aplayer .aplayer-list ol {
+    /* ✅ 让列表区域成为滚动容器（高度按需改：110/130/160 都行） */
+    .aplayer .aplayer-list{
       max-height: 140px;
       overflow-y: auto;
+    }
+    .aplayer .aplayer-list ol{
+      max-height: none;
     }
   </style>
 </head>
@@ -106,23 +109,62 @@
     const DEFAULT_THEME = '#e9e9e9';
 
     /* =========================
-       自动滚动到当前播放项
+       ✅ 强力自动滚动（Notion/窄高度稳定）
        ========================= */
-    function scrollActiveIntoView() {
-      const active = document.querySelector('.aplayer-list li.aplayer-list-light');
-      if (!active) return;
+    function getScrollContainer() {
+      // 优先找真正有滚动条的元素
+      const list = document.querySelector('.aplayer .aplayer-list');
+      if (list && list.scrollHeight > list.clientHeight) return list;
 
-      const list = document.querySelector('.aplayer .aplayer-list ol');
-      if (!list) return;
+      const ol = document.querySelector('.aplayer .aplayer-list ol');
+      if (ol && ol.scrollHeight > ol.clientHeight) return ol;
 
-      active.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest'
-      });
+      return list || ol;
+    }
+
+    function scrollActiveIntoViewStrong(mode = 'center') {
+      const active = document.querySelector('.aplayer .aplayer-list li.aplayer-list-light');
+      const container = getScrollContainer();
+      if (!active || !container) return false;
+
+      const cRect = container.getBoundingClientRect();
+      const aRect = active.getBoundingClientRect();
+
+      // active 相对 container 的位置（用 rect 算，避免 offsetTop 参照错）
+      const topInContainer = (aRect.top - cRect.top) + container.scrollTop;
+      const bottomInContainer = topInContainer + aRect.height;
+
+      const viewTop = container.scrollTop;
+      const viewBottom = viewTop + container.clientHeight;
+
+      // 已经完全可见就不用滚
+      if (topInContainer >= viewTop && bottomInContainer <= viewBottom) return true;
+
+      let target;
+      if (mode === 'nearest') {
+        // 只滚到刚好可见
+        target = topInContainer < viewTop
+          ? topInContainer
+          : (bottomInContainer - container.clientHeight);
+      } else {
+        // 滚到中间（体验最好）
+        target = topInContainer - (container.clientHeight / 2) + (aRect.height / 2);
+      }
+
+      container.scrollTo({ top: target, behavior: 'smooth' });
+      return true;
+    }
+
+    // 多帧重试：确保高亮更新后一定滚
+    function ensureScrollActive(retries = 6) {
+      const ok = scrollActiveIntoViewStrong('center');
+      if (ok) return;
+      if (retries <= 0) return;
+      requestAnimationFrame(() => ensureScrollActive(retries - 1));
     }
 
     /* =========================
-       稳定变色龙主题（Notion 适配）
+       ✅ 稳定变色龙主题（Notion 适配）
        ========================= */
     let themeTimer = null;
 
@@ -156,6 +198,7 @@
             : ap.theme(DEFAULT_THEME, index);
         };
 
+        // 给封面加 cache-bust，避免 Notion embed 下偶发不触发 onload
         const bust = `cb=${Date.now()}_${index}_${retry}`;
         img.src = imgUrl.includes('?') ? `${imgUrl}&${bust}` : `${imgUrl}?${bust}`;
       }, 60);
@@ -165,18 +208,19 @@
        事件绑定
        ========================= */
     ap.on('listswitch', () => {
-      scrollActiveIntoView();
+      ensureScrollActive(6);
       updateThemeSafe(0);
     });
 
+    // 有些情况下 Notion 首次渲染 listswitch 不触发，用这些补齐
     ap.on('canplay', () => updateThemeSafe(0));
     ap.on('play', () => updateThemeSafe(0));
 
     window.addEventListener('load', () => {
       setTimeout(() => {
-        scrollActiveIntoView();
+        ensureScrollActive(6);
         updateThemeSafe(0);
-      }, 400);
+      }, 500);
     });
   </script>
 </body>
