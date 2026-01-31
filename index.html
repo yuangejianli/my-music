@@ -12,19 +12,19 @@
       background: transparent;
     }
 
-    /* 1) ✅ 阴影：把上一版强度压到 30%（更接近原版、更克制） */
+    /* 1️⃣ 阴影：当前版本的 50%，接近原版存在感 */
     .aplayer {
       border-radius: 0 !important;
       border: none !important;
+      background: #fff;
       box-shadow:
-        0 0 0 1px rgba(0,0,0,0.02),     /* 原 0.06 -> 0.02 */
-        0 8px 22px rgba(0,0,0,0.03) !important; /* 原 0.10 -> 0.03 */
+        0 0 0 1px rgba(0,0,0,0.03),
+        0 6px 16px rgba(0,0,0,0.06) !important;
       transition: box-shadow 0.25s ease;
       --zinnia-theme: #e9e9e9;
-      background: #fff;
     }
 
-    /* 2) ✅ 列表区域：保持高度与滚动 */
+    /* 2️⃣ 列表高度与滚动逻辑（保留） */
     .aplayer .aplayer-list {
       max-height: 100px !important;
       overflow: hidden !important;
@@ -38,7 +38,7 @@
       border: none !important;
     }
 
-    /* 3) ✅ 隐藏滚动条（保留） */
+    /* 3️⃣ 彻底隐藏滚动条（保留） */
     .aplayer .aplayer-list,
     .aplayer .aplayer-list ol,
     .aplayer .aplayer-list * {
@@ -53,26 +53,18 @@
       display: none !important;
     }
 
-    /* 4) ✅ 分割线：不要“底线”，改成“下一首的顶线”
-       - 每个 li 默认无边框
-       - 从第2首开始加 top 线
-       - 这样最后一首下面永远干净（因为没有 bottom）
-    */
+    /* 4️⃣ ❌ 不要任何分隔线（最终决定） */
     .aplayer .aplayer-list ol li {
       border: none !important;
       background-image: none !important;
-      background-color: transparent;
-    }
-    .aplayer .aplayer-list ol li + li {
-      border-top: 1px solid #e6e6e6 !important;
     }
 
-    /* 5) ✅ 当前播放行底色（保留） */
+    /* 5️⃣ 当前播放行高亮（保留） */
     .aplayer .aplayer-list ol li.aplayer-list-light {
       background: #f0f0f0 !important;
     }
 
-    /* 6) ✅ 左侧小竖条：跟随变色龙 */
+    /* 6️⃣ 左侧小竖条：跟随变色龙 */
     .aplayer .aplayer-list ol li .aplayer-list-cur {
       width: 2px !important;
       background: var(--zinnia-theme) !important;
@@ -134,7 +126,6 @@
           try {
             const c = colorThief.getColor(img);
             const themeColor = `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
-
             ap.theme(themeColor, index);
             ap.container.style.setProperty('--zinnia-theme', themeColor);
           } catch (e) {}
@@ -151,7 +142,6 @@
           activeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
       }, 100);
-
       updateThemeSafe();
     });
 
