@@ -5,15 +5,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css">
     <style>
         body { margin: 0; background: transparent; overflow: hidden; }
-        /* 1. 精致细长彩色条 (珊瑚色) */
-        .aplayer .aplayer-list ol li .aplayer-list-cur {
-            width: 2px !important; height: 22px !important; top: 5px !important; background: #ff7675 !important;
-        }
-        /* 2. 还原原版那种明显的灰色背景 */
+        .aplayer .aplayer-list ol li .aplayer-list-cur { width: 2px !important; height: 22px !important; top: 5px !important; background: #ff7675 !important; }
         .aplayer .aplayer-list ol li.aplayer-list-light { background: #e9e9e9 !important; }
-        /* 3. 让列表内部留出更多空隙，确保最后一首能滚上去 */
         .aplayer .aplayer-list ol { padding-bottom: 60px !important; }
-        /* 4. 限制播放器内部高度 */
         .aplayer-list { max-height: 90px !important; }
         .aplayer { border-radius: 8px !important; box-shadow: none !important; border: 1px solid #eee !important; }
     </style>
@@ -28,26 +22,13 @@
             listMaxHeight: '90px',
             theme: '#ff7675',
             audio: [
-                // 💡 以后你想加歌，就照着下面的格式复制一行，非常直观
-                {
-                    name: '沙尘的彼方', 
-                    artist: 'FictionJunction', 
-                    url: 'music/FictionJunction - 沙尘的彼方.mp3',
-                    cover: 'cover/FictionJunction - 沙尘的彼方.jpg'
-                },
-                {
-                    name: 'Everytime you kissed me',
-                    artist: 'FictionJunction',
-                    url: 'music/FictionJunction - Everytime you kissed me.mp3',
-                    cover: 'cover/FictionJunction - Everytime you kissed me.jpg'
-                },
-                {
-                    name: 'Rewrite The Stars',
-                    artist: 'Zendaya',
-                    url: 'music/Zendaya - Rewrite The Stars.mp3',
-                    cover: 'cover/Zendaya - Rewrite The Stars.jpg'
-                }
-                // 在这里继续添加...
+                { name: '沙尘的彼方', artist: 'FictionJunction', url: 'music/FictionJunction - 沙尘的彼方.mp3', cover: 'cover/FictionJunction - 沙尘的彼方.jpg' },
+                { name: 'Everytime you kissed me', artist: 'FictionJunction', url: 'music/FictionJunction - Everytime you kissed me.mp3', cover: 'cover/FictionJunction - Everytime you kissed me.jpg' },
+                { name: 'My long forgotten cloistered sleep', artist: 'FictionJunction', url: 'music/FictionJunction - My long forgotten cloistered sleep.mp3', cover: 'cover/FictionJunction - My long forgotten cloistered sleep.jpg' },
+                { name: '花守之丘', artist: 'FictionJunction', url: 'music/FictionJunction - 花守之丘.mp3', cover: 'cover/FictionJunction - 花守之丘.jpg' },
+                { name: 'Rewrite The Stars', artist: 'Zendaya', url: 'music/Zendaya - Rewrite The Stars.mp3', cover: 'cover/Zendaya - Rewrite The Stars.jpg' },
+                { name: 'Hurricanes', artist: 'Dido', url: 'music/Dido - Hurricanes.mp3', cover: 'cover/Dido - Hurricanes.jpg' },
+                { name: 'Her Silence', artist: '何真真', url: 'music/何真真 - Her Silence.mp3', cover: 'cover/何真真 - Her Silence.jpg' }
             ]
         });
     </script>
