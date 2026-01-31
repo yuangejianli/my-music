@@ -7,24 +7,9 @@
     <script src="https://cdn.jsdelivr.net/npm/colorthief@2.3.2/dist/color-thief.umd.js"></script>
     <style>
         body { margin: 0; background: transparent; }
-        
-        /* 1. 变回直角 */
-        .aplayer { 
-            border-radius: 0 !important; 
-            box-shadow: none !important; 
-            border: 1px solid #eee !important; 
-        }
-
-        /* 2. 竖条宽度 */
-        .aplayer .aplayer-list ol li .aplayer-list-cur {
-            width: 2px !important;
-        }
-
-        /* 3. 解锁高度：随 Notion 框无限伸缩 */
-        .aplayer-list { 
-            max-height: none !important; 
-        }
-
+        .aplayer { border-radius: 0 !important; box-shadow: none !important; border: 1px solid #eee !important; }
+        .aplayer .aplayer-list ol li .aplayer-list-cur { width: 2px !important; }
+        .aplayer-list { max-height: none !important; }
         .aplayer .aplayer-list ol li.aplayer-list-light { background: #e9e9e9 !important; }
     </style>
 </head>
@@ -32,7 +17,6 @@
     <div id="aplayer"></div>
     <script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script>
     <script>
-        // 你的歌曲清单 (以后加歌只需要填这 4 项，不用管颜色)
         const audioList = [
             { name: '沙尘的彼方', artist: 'FictionJunction', url: 'music/FictionJunction - 沙尘的彼方.mp3', cover: 'cover/FictionJunction - 沙尘的彼方.jpg' },
             { name: 'Everytime you kissed me', artist: 'FictionJunction', url: 'music/FictionJunction - Everytime you kissed me.mp3', cover: 'cover/FictionJunction - Everytime you kissed me.jpg' },
@@ -43,35 +27,43 @@
             { name: 'Her Silence', artist: '何真真', url: 'music/何真真 - Her Silence.mp3', cover: 'cover/何真真 - Her Silence.jpg' }
         ];
 
-        // 初始化播放器
         const ap = new APlayer({
             container: document.getElementById('aplayer'),
             listFolded: false,
-            audio: audioList
+            audio: audioList,
+            theme: '#e9e9e9' // 默认初始颜色
         });
 
-        // --- 变色龙逻辑：自动提取封面颜色 ---
         const colorThief = new ColorThief();
-        const setTheme = (index) => {
-            const img = new Image();
-            img.crossOrigin = 'Anonymous'; // 允许跨域提取图片颜色
-            img.src = ap.list.audios[index].cover;
+
+        // 【核心逻辑】自动提取当前播放歌曲封面的颜色
+        const updateTheme = () => {
+            const index = ap.list.index;
+            const imgUrl = audioList[index].cover;
             
-            img.onload = () => {
-                const rgb = colorThief.getColor(img); // 提取主色调
-                const color = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
-                ap.theme(color, index); // 把提取到的颜色应用到当前曲目
+            if (!imgUrl) return;
+
+            const img = new Image();
+            img.crossOrigin = "Anonymous"; // 解决跨域取色问题
+            img.src = imgUrl;
+
+            img.onload = function() {
+                const color = colorThief.getColor(img);
+                const themeColor = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+                // 同时更新进度条和列表竖条
+                ap.theme(themeColor, index);
             };
         };
 
-        // 页面刚加载时，给列表所有歌曲提取一遍颜色
-        audioList.forEach((_, i) => setTheme(i));
-
-        // 每次切换歌曲时，确保主题色即时更新
-        ap.on('listswitch', (data) => {
-            const rgb = colorThief.getColor(document.querySelector('.aplayer-pic img'));
-            ap.theme(`rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`);
+        // 监听切换歌曲事件
+        ap.on('listswitch', () => {
+            updateTheme();
         });
+
+        // 页面首次加载也执行一次
+        window.onload = () => {
+            setTimeout(updateTheme, 500); 
+        };
     </script>
 </body>
 </html>
