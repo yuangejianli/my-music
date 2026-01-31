@@ -3,45 +3,34 @@
 <head>
   <meta charset="UTF-8">
 
-  <!-- APlayer 样式 -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css">
-
-  <!-- ColorThief -->
   <script src="https://cdn.jsdelivr.net/npm/colorthief@2.3.2/dist/color-thief.umd.js"></script>
 
   <style>
-    body {
-      margin: 0;
-      background: transparent;
-    }
+    body { margin: 0; background: transparent; }
 
-    .aplayer {
+    .aplayer{
       border-radius: 0 !important;
       box-shadow: none !important;
       border: 1px solid #eee !important;
     }
 
-    .aplayer .aplayer-list ol li .aplayer-list-cur {
-      width: 2px !important;
+    .aplayer .aplayer-list ol li .aplayer-list-cur { width: 2px !important; }
+    .aplayer .aplayer-list ol li.aplayer-list-light { background: #e9e9e9 !important; }
+
+    /* ✅ 关键：强制把“裁切窗口”锁到 .aplayer-list 这一层（用 !important 抢优先级） */
+    .aplayer .aplayer-list{
+      max-height: 120px !important;     /* 你想显示3首歌就 110~130 左右 */
+      overflow: hidden !important;      /* 伪滚动必须隐藏真实滚动 */
+      position: relative !important;
+      height: auto !important;          /* 防止 APlayer 内联高度干扰 */
     }
 
-    .aplayer .aplayer-list ol li.aplayer-list-light {
-      background: #e9e9e9 !important;
-    }
-
-    /* =========================
-       ✅ 核心：不锁死高度的伪滚动
-       ========================= */
-    .aplayer .aplayer-list {
-      max-height: 120px;        /* 窄时生效，可随意改 */
-      min-height: 60px;
-      overflow: hidden;        /* 必须隐藏真实滚动 */
-      position: relative;
-    }
-
-    .aplayer .aplayer-list ol {
-      transition: transform 0.35s ease;
+    /* ✅ 让 ol 做位移（伪滚动本体） */
+    .aplayer .aplayer-list ol{
+      transition: transform 0.35s ease !important;
       will-change: transform;
+      margin: 0 !important;
     }
   </style>
 </head>
@@ -49,13 +38,9 @@
 <body>
   <div id="aplayer"></div>
 
-  <!-- APlayer -->
   <script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script>
 
   <script>
-    /* =========================
-       音乐列表
-       ========================= */
     const audioList = [
       { name: 'Her Silence', artist: '何真真', url: 'music/何真真 - Her Silence.mp3', cover: 'cover/何真真 - Her Silence.jpg' },
       { name: 'Hurricanes', artist: 'Dido', url: 'music/Dido - Hurricanes.mp3', cover: 'cover/Dido - Hurricanes.jpg' },
@@ -74,28 +59,43 @@
     });
 
     /* =========================
-       ✅ 不锁死高度的伪滚动逻辑
+       ✅ 伪滚动：用 active.offsetTop 计算真实位置（更稳）
        ========================= */
-    function translateListIfNeeded() {
+    function fakeScrollToActive() {
       const wrap = document.querySelector('.aplayer .aplayer-list');
-      const list = document.querySelector('.aplayer .aplayer-list ol');
-      const active = document.querySelector('.aplayer li.aplayer-list-light');
-      if (!wrap || !list || !active) return;
+      const ol = document.querySelector('.aplayer .aplayer-list ol');
+      const active = document.querySelector('.aplayer .aplayer-list li.aplayer-list-light');
+      if (!wrap || !ol || !active) return;
 
-      // 如果列表完全显示得下，就不需要任何平移
-      if (list.scrollHeight <= wrap.clientHeight + 2) {
-        list.style.transform = 'translateY(0)';
+      // 如果内容本来就没超出窗口，就归零
+      if (ol.scrollHeight <= wrap.clientHeight + 2) {
+        ol.style.transform = 'translateY(0px)';
         return;
       }
 
-      const itemHeight = active.offsetHeight;
-      const index = ap.list.index;
+      // 目标：让 active 出现在窗口的 35% 处（偏上，不会卡底）
+      const desiredTop = wrap.clientHeight * 0.35;
 
-      // 当前播放项尽量出现在第 2 行
-      const visibleIndex = 1;
-      const offset = Math.max(0, (index - visibleIndex) * itemHeight);
+      // active 在 ol 里的真实 top
+      const activeTop = active.offsetTop;
 
-      list.style.transform = `translateY(${-offset}px)`;
+      // 计算位移：把 activeTop 拉到 desiredTop
+      let offset = activeTop - desiredTop;
+
+      // 限制上下边界，避免拉过头
+      const maxOffset = Math.max(0, ol.scrollHeight - wrap.clientHeight);
+      if (offset < 0) offset = 0;
+      if (offset > maxOffset) offset = maxOffset;
+
+      ol.style.transform = `translateY(${-offset}px)`;
+    }
+
+    // ✅ 多次延迟执行：确保 Notion + APlayer 的高亮类名已经更新
+    function ensureFakeScroll() {
+      requestAnimationFrame(fakeScrollToActive);
+      setTimeout(fakeScrollToActive, 60);
+      setTimeout(fakeScrollToActive, 150);
+      setTimeout(fakeScrollToActive, 300);
     }
 
     /* =========================
@@ -118,22 +118,20 @@
 
         img.onload = () => {
           try {
-            const color = colorThief.getColor(img);
-            ap.theme(`rgb(${color[0]}, ${color[1]}, ${color[2]})`, index);
-          } catch {
-            retry < 3
-              ? setTimeout(() => updateThemeSafe(retry + 1), 250)
-              : ap.theme(DEFAULT_THEME, index);
+            const c = colorThief.getColor(img);
+            ap.theme(`rgb(${c[0]}, ${c[1]}, ${c[2]})`, index);
+          } catch (e) {
+            retry < 3 ? setTimeout(() => updateThemeSafe(retry + 1), 250)
+                      : ap.theme(DEFAULT_THEME, index);
           }
         };
 
         img.onerror = () => {
-          retry < 3
-            ? setTimeout(() => updateThemeSafe(retry + 1), 250)
-            : ap.theme(DEFAULT_THEME, index);
+          retry < 3 ? setTimeout(() => updateThemeSafe(retry + 1), 250)
+                    : ap.theme(DEFAULT_THEME, index);
         };
 
-        img.src = imgUrl + '?cb=' + Date.now();
+        img.src = imgUrl + (imgUrl.includes('?') ? '&' : '?') + 'cb=' + Date.now();
       }, 60);
     }
 
@@ -141,13 +139,19 @@
        事件绑定
        ========================= */
     ap.on('listswitch', () => {
-      requestAnimationFrame(translateListIfNeeded);
+      ensureFakeScroll();
       updateThemeSafe(0);
+    });
+
+    // 点击列表项时也触发（更符合你的“手点第3首/第4首”场景）
+    document.addEventListener('click', (e) => {
+      const inList = e.target && e.target.closest && e.target.closest('.aplayer .aplayer-list');
+      if (inList) ensureFakeScroll();
     });
 
     window.addEventListener('load', () => {
       setTimeout(() => {
-        translateListIfNeeded();
+        ensureFakeScroll();
         updateThemeSafe(0);
       }, 400);
     });
