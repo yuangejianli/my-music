@@ -3,13 +3,16 @@
 <head>
   <meta charset="UTF-8">
 
+  <!-- APlayer 样式 -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css">
+
+  <!-- ColorThief 取色库 -->
   <script src="https://cdn.jsdelivr.net/npm/colorthief@2.3.2/dist/color-thief.umd.js"></script>
 
   <style>
     body { margin: 0; background: transparent; }
 
-    .aplayer{
+    .aplayer {
       border-radius: 0 !important;
       box-shadow: none !important;
       border: 1px solid #eee !important;
@@ -18,20 +21,16 @@
     .aplayer .aplayer-list ol li .aplayer-list-cur { width: 2px !important; }
     .aplayer .aplayer-list ol li.aplayer-list-light { background: #e9e9e9 !important; }
 
-    /* ✅ 关键：强制把“裁切窗口”锁到 .aplayer-list 这一层（用 !important 抢优先级） */
+    /* ✅ 关键：让“列表区域”自己滚动，别动 ol */
     .aplayer .aplayer-list{
-      max-height: 120px !important;     /* 你想显示3首歌就 110~130 左右 */
-      overflow: hidden !important;      /* 伪滚动必须隐藏真实滚动 */
-      position: relative !important;
-      height: auto !important;          /* 防止 APlayer 内联高度干扰 */
+      overflow-y: auto !important;
+      /* 高度由 JS 自动写入，避免你手算不准 */
     }
 
-    /* ✅ 让 ol 做位移（伪滚动本体） */
-    .aplayer .aplayer-list ol{
-      transition: transform 0.35s ease !important;
-      will-change: transform;
-      margin: 0 !important;
-    }
+    /* 可选：滚动条更干净一点（不影响功能） */
+    .aplayer .aplayer-list::-webkit-scrollbar { width: 6px; }
+    .aplayer .aplayer-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
+    .aplayer .aplayer-list::-webkit-scrollbar-track { background: transparent; }
   </style>
 </head>
 
@@ -59,43 +58,30 @@
     });
 
     /* =========================
-       ✅ 伪滚动：用 active.offsetTop 计算真实位置（更稳）
+       ✅ 把列表高度锁到“完整 3 首”
+       - 用真实 li 高度算，不用你手调 px
+       - 保证裁在横线之间，不破坏边框完整性
        ========================= */
-    function fakeScrollToActive() {
-      const wrap = document.querySelector('.aplayer .aplayer-list');
-      const ol = document.querySelector('.aplayer .aplayer-list ol');
-      const active = document.querySelector('.aplayer .aplayer-list li.aplayer-list-light');
-      if (!wrap || !ol || !active) return;
+    function lockListHeightToN(n = 3) {
+      const list = document.querySelector('.aplayer .aplayer-list');
+      const li = document.querySelector('.aplayer .aplayer-list li');
+      if (!list || !li) return;
 
-      // 如果内容本来就没超出窗口，就归零
-      if (ol.scrollHeight <= wrap.clientHeight + 2) {
-        ol.style.transform = 'translateY(0px)';
-        return;
-      }
+      const h = li.getBoundingClientRect().height;
 
-      // 目标：让 active 出现在窗口的 35% 处（偏上，不会卡底）
-      const desiredTop = wrap.clientHeight * 0.35;
+      // 有些环境里 li 高度会是小数，取整避免 1px 裂缝
+      const target = Math.round(h * n);
 
-      // active 在 ol 里的真实 top
-      const activeTop = active.offsetTop;
-
-      // 计算位移：把 activeTop 拉到 desiredTop
-      let offset = activeTop - desiredTop;
-
-      // 限制上下边界，避免拉过头
-      const maxOffset = Math.max(0, ol.scrollHeight - wrap.clientHeight);
-      if (offset < 0) offset = 0;
-      if (offset > maxOffset) offset = maxOffset;
-
-      ol.style.transform = `translateY(${-offset}px)`;
+      list.style.height = target + 'px';
     }
 
-    // ✅ 多次延迟执行：确保 Notion + APlayer 的高亮类名已经更新
-    function ensureFakeScroll() {
-      requestAnimationFrame(fakeScrollToActive);
-      setTimeout(fakeScrollToActive, 60);
-      setTimeout(fakeScrollToActive, 150);
-      setTimeout(fakeScrollToActive, 300);
+    // 初次渲染后再算（APlayer 会异步渲染列表）
+    function initLockHeight() {
+      lockListHeightToN(3);
+
+      // Notion/字体加载可能会改高度，再补一次
+      setTimeout(() => lockListHeightToN(3), 300);
+      setTimeout(() => lockListHeightToN(3), 800);
     }
 
     /* =========================
@@ -135,26 +121,18 @@
       }, 60);
     }
 
-    /* =========================
-       事件绑定
-       ========================= */
-    ap.on('listswitch', () => {
-      ensureFakeScroll();
-      updateThemeSafe(0);
-    });
-
-    // 点击列表项时也触发（更符合你的“手点第3首/第4首”场景）
-    document.addEventListener('click', (e) => {
-      const inList = e.target && e.target.closest && e.target.closest('.aplayer .aplayer-list');
-      if (inList) ensureFakeScroll();
-    });
+    ap.on('listswitch', () => updateThemeSafe(0));
 
     window.addEventListener('load', () => {
+      // 等 APlayer 把 DOM 插完
       setTimeout(() => {
-        ensureFakeScroll();
+        initLockHeight();
         updateThemeSafe(0);
-      }, 400);
+      }, 350);
     });
+
+    // 可选：窗口尺寸变化时重新锁一下（Notion 里偶尔有重排）
+    window.addEventListener('resize', () => lockListHeightToN(3));
   </script>
 </body>
 </html>
