@@ -1,69 +1,80 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css">
-    <!-- 引入色彩提取插件 -->
-    <script src="https://cdn.jsdelivr.net/npm/colorthief@2.3.2/dist/color-thief.umd.js"></script>
-    <style>
-        body { margin: 0; background: transparent; }
-        .aplayer { border-radius: 0 !important; box-shadow: none !important; border: 1px solid #eee !important; }
-        .aplayer .aplayer-list ol li .aplayer-list-cur { width: 2px !important; }
-        .aplayer-list { max-height: none !important; }
-        .aplayer .aplayer-list ol li.aplayer-list-light { background: #e9e9e9 !important; }
-    </style>
-</head>
-<body>
-    <div id="aplayer"></div>
-    <script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script>
-    <script>
-        const audioList = [
-            { name: '沙尘的彼方', artist: 'FictionJunction', url: 'music/FictionJunction - 沙尘的彼方.mp3', cover: 'cover/FictionJunction - 沙尘的彼方.jpg' },
-            { name: 'Everytime you kissed me', artist: 'FictionJunction', url: 'music/FictionJunction - Everytime you kissed me.mp3', cover: 'cover/FictionJunction - Everytime you kissed me.jpg' },
-            { name: 'My long forgotten cloistered sleep', artist: 'FictionJunction', url: 'music/FictionJunction - My long forgotten cloistered sleep.mp3', cover: 'cover/FictionJunction - My long forgotten cloistered sleep.jpg' },
-            { name: '花守之丘', artist: 'FictionJunction', url: 'music/FictionJunction - 花守之丘.mp3', cover: 'cover/FictionJunction - 花守之丘.jpg' },
-            { name: 'Rewrite The Stars', artist: 'Zendaya', url: 'music/Zendaya - Rewrite The Stars.mp3', cover: 'cover/Zendaya - Rewrite The Stars.jpg' },
-            { name: 'Hurricanes', artist: 'Dido', url: 'music/Dido - Hurricanes.mp3', cover: 'cover/Dido - Hurricanes.jpg' },
-            { name: 'Her Silence', artist: '何真真', url: 'music/何真真 - Her Silence.mp3', cover: 'cover/何真真 - Her Silence.jpg' }
-        ];
+<script>
+  const audioList = [
+    { name: 'Her Silence', artist: '何真真', url: 'music/何真真 - Her Silence.mp3', cover: 'cover/何真真 - Her Silence.jpg' }
+    { name: 'Hurricanes', artist: 'Dido', url: 'music/Dido - Hurricanes.mp3', cover: 'cover/Dido - Hurricanes.jpg' },
+    { name: 'Everytime you kissed me', artist: 'FictionJunction', url: 'music/FictionJunction - Everytime you kissed me.mp3', cover: 'cover/FictionJunction - Everytime you kissed me.jpg' },
+    { name: '沙尘的彼方', artist: 'FictionJunction', url: 'music/FictionJunction - 沙尘的彼方.mp3', cover: 'cover/FictionJunction - 沙尘的彼方.jpg' },
+    { name: 'My long forgotten cloistered sleep', artist: 'FictionJunction', url: 'music/FictionJunction - My long forgotten cloistered sleep.mp3', cover: 'cover/FictionJunction - My long forgotten cloistered sleep.jpg' },
+    { name: '花守之丘', artist: 'FictionJunction', url: 'music/FictionJunction - 花守之丘.mp3', cover: 'cover/FictionJunction - 花守之丘.jpg' },
+    { name: 'Rewrite The Stars', artist: 'Zendaya', url: 'music/Zendaya - Rewrite The Stars.mp3', cover: 'cover/Zendaya - Rewrite The Stars.jpg' },
+  ];
 
-        const ap = new APlayer({
-            container: document.getElementById('aplayer'),
-            listFolded: false,
-            audio: audioList,
-            theme: '#e9e9e9' // 默认初始颜色
-        });
+  const ap = new APlayer({
+    container: document.getElementById('aplayer'),
+    listFolded: false,
+    audio: audioList,
+    theme: '#e9e9e9'
+  });
 
-        const colorThief = new ColorThief();
+  const colorThief = new ColorThief();
+  const DEFAULT_THEME = '#e9e9e9';
 
-        // 【核心逻辑】自动提取当前播放歌曲封面的颜色
-        const updateTheme = () => {
-            const index = ap.list.index;
-            const imgUrl = audioList[index].cover;
-            
-            if (!imgUrl) return;
+  function scrollActiveIntoView() {
+    const active = document.querySelector('.aplayer-list li.aplayer-list-light');
+    if (!active) return;
+    const list = document.querySelector('.aplayer .aplayer-list ol');
+    if (!list) return;
+    active.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
 
-            const img = new Image();
-            img.crossOrigin = "Anonymous"; // 解决跨域取色问题
-            img.src = imgUrl;
+  // ✅ 稳定取色：带重试 + 失败兜底
+  let themeTimer = null;
+  function updateThemeSafe(retry = 0) {
+    const index = ap.list.index;
+    const imgUrl = audioList[index]?.cover;
+    if (!imgUrl) return;
 
-            img.onload = function() {
-                const color = colorThief.getColor(img);
-                const themeColor = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
-                // 同时更新进度条和列表竖条
-                ap.theme(themeColor, index);
-            };
-        };
+    // 防抖：切歌很快时避免疯狂取色
+    clearTimeout(themeTimer);
+    themeTimer = setTimeout(() => {
+      const img = new Image();
+      img.crossOrigin = "Anonymous";
+      img.decoding = "async";
+      img.referrerPolicy = "no-referrer"; // Notion/某些CDN下更稳一点
 
-        // 监听切换歌曲事件
-        ap.on('listswitch', () => {
-            updateTheme();
-        });
+      img.onload = () => {
+        try {
+          const color = colorThief.getColor(img);
+          const themeColor = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+          ap.theme(themeColor, index);
+        } catch (e) {
+          // 有时图片已加载但 canvas/取色失败，重试几次再兜底
+          if (retry < 4) {
+            setTimeout(() => updateThemeSafe(retry + 1), 250);
+          } else {
+            ap.theme(DEFAULT_THEME, index);
+          }
+        }
+      };
 
-        // 页面首次加载也执行一次
-        window.onload = () => {
-            setTimeout(updateTheme, 500); 
-        };
-    </script>
-</body>
-</html>
+      img.onerror = () => {
+        if (retry < 4) {
+          setTimeout(() => updateThemeSafe(retry + 1), 250);
+        } else {
+          ap.theme(DEFAULT_THEME, index);
+        }
+      };
+
+      // ✅ 给封面加一点点 cache-bust，避免 Notion embed 下偶发“取到旧图/不触发onload”
+      const bust = `cb=${Date.now()}_${index}_${retry}`;
+      img.src = imgUrl.includes('?') ? `${imgUrl}&${bust}` : `${imgUrl}?${bust}`;
+    }, 60);
+  }
+
+  // 切歌：滚动 + 变色
+  ap.on('listswitch', () => {
+    scrollActiveIntoView();
+    updateThemeSafe(0);
+  });
+
+  // 有些时候 Notion 首次渲染时 lis
