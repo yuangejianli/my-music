@@ -4,54 +4,64 @@
   <meta charset="UTF-8">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css">
   <script src="https://cdn.jsdelivr.net/npm/colorthief@2.3.2/dist/color-thief.umd.js"></script>
+
   <style>
     body { margin: 15px; background: transparent; } /* 留点边距方便显示阴影 */
 
-    /* 1. ✅ 浮起效果 (Shadow) + 直角 */
+    /* 1) ✅ 浮起效果 + 直角（保留） */
     .aplayer {
       border-radius: 0 !important;
-      border: none !important; /* 既然要浮起，就去掉边框，改用阴影 */
-      box-shadow: 0 10px 30px -10px rgba(0,0,0,0.2) !important; /* 核心：悬浮感阴影 */
+      border: none !important;
+      box-shadow: 0 10px 30px -10px rgba(0,0,0,0.2) !important;
       transition: all 0.3s ease;
     }
 
-    /* 2. ✅ 彻底干掉右侧手动滚动条 */
+    /* 2) ✅ 列表区域滚动 + 隐藏滚动条（关键：.aplayer-list 和 ol 都要处理） */
     .aplayer .aplayer-list {
-      max-height: 100px !important; 
-      overflow-y: auto !important;
-      scrollbar-width: none !important; /* Firefox */
-      -ms-overflow-style: none !important; /* IE */
+      max-height: 100px !important;
+      overflow: hidden !important; /* 外层不滚，避免出现双滚动条 */
     }
-    .aplayer .aplayer-list::-webkit-scrollbar {
-      display: none !important; /* Chrome/Safari */
+    .aplayer .aplayer-list ol {
+      max-height: 100px !important;
+      overflow-y: auto !important;  /* 真正滚动放在 ol */
+      scrollbar-width: none !important; /* Firefox */
+      -ms-overflow-style: none !important; /* IE/旧Edge */
+      border: none !important; /* ✅ 干掉 ol 自带的边线，避免底部多一条线 */
+    }
+    .aplayer .aplayer-list ol::-webkit-scrollbar {
       width: 0 !important;
       height: 0 !important;
+      display: none !important;
     }
 
-    /* 3. ✅ 去掉最后一首歌下面的横线 */
+    /* 3) ✅ 分割线：统一用 border-bottom，彻底消灭“最后一行多余线” */
     .aplayer .aplayer-list ol li {
-      border-top: 1px solid #f5f5f5 !important; /* 统一上面的线 */
-    }
-    .aplayer .aplayer-list ol li:first-child {
-      border-top: none !important; /* 第一首歌上面不需要线 */
+      border-top: none !important;
+      border-bottom: 1px solid #f5f5f5 !important;
     }
     .aplayer .aplayer-list ol li:last-child {
-      border-bottom: none !important; /* 彻底去掉最后一首歌的底线 */
+      border-bottom: none !important;
     }
 
-    /* 4. 激活行颜色 */
+    /* 4) ✅ 激活行颜色（保留你现在的） */
     .aplayer .aplayer-list ol li.aplayer-list-light {
       background: #f0f0f0 !important;
     }
-    
+
+    /* 5) ✅ 左侧小竖条：强制跟随“变色龙主题色” */
+    .aplayer {
+      --zinnia-theme: #e9e9e9; /* 默认值，JS 会动态更新 */
+    }
     .aplayer .aplayer-list ol li .aplayer-list-cur {
       width: 2px !important;
+      background: var(--zinnia-theme) !important;
     }
   </style>
 </head>
 
 <body>
   <div id="aplayer"></div>
+
   <script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script>
 
   <script>
@@ -73,15 +83,17 @@
       theme: '#e9e9e9'
     });
 
-    /* 变色龙 & 自动滚动 */
     const colorThief = new ColorThief();
+
     ap.on('listswitch', () => {
+      // ✅ 自动滚动（保留你现在的）
       setTimeout(() => {
         const activeItem = document.querySelector('.aplayer-list-light');
         if (activeItem) {
           activeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
       }, 100);
+
       updateTheme();
     });
 
@@ -89,14 +101,24 @@
       const index = ap.list.index;
       const imgUrl = audioList[index]?.cover;
       if (!imgUrl) return;
+
       const img = new Image();
       img.crossOrigin = 'Anonymous';
+
       img.onload = () => {
         const c = colorThief.getColor(img);
-        ap.theme(`rgb(${c[0]}, ${c[1]}, ${c[2]})`, index);
+        const themeColor = `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
+
+        // ✅ APlayer 原本的变色龙（保留）
+        ap.theme(themeColor, index);
+
+        // ✅ 额外同步给左侧小竖条用（修复它变黑的问题）
+        ap.container.style.setProperty('--zinnia-theme', themeColor);
       };
+
       img.src = imgUrl + '?' + Date.now();
     }
+
     window.addEventListener('load', () => setTimeout(updateTheme, 300));
   </script>
 </body>
