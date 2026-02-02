@@ -37,14 +37,17 @@
       margin: 0 !important;
       padding: 0 !important;
       scroll-behavior: smooth; 
+      /* 隐藏滚动条 */
+      scrollbar-width: none !important;
     }
 
     .aplayer .aplayer-list ol::-webkit-scrollbar {
       display: none !important;
     }
 
-    /* 3️⃣ 列表行样式 (26px) */
+    /* 3️⃣ 列表行样式 (精准 26px) */
     .aplayer .aplayer-list ol li {
+      box-sizing: border-box !important; /* 强制盒模型，防止高度偏移 */
       background-image: none !important;
       height: 26px !important;   
       line-height: 26px !important;
@@ -55,7 +58,7 @@
       position: relative;
     }
 
-    /* 4️⃣ 颜色完全统一：歌名与歌手均使用深灰色 #333 */
+    /* 4️⃣ 颜色一致性 */
     .aplayer .aplayer-list ol li .aplayer-list-index {
       color: #999;
       margin-right: 12px;
@@ -72,7 +75,7 @@
     }
 
     .aplayer .aplayer-list ol li .aplayer-list-author {
-      color: #333 !important; /* 调成和歌名一样的颜色 */
+      color: #333 !important; 
       font-size: 12px !important;
       flex-shrink: 0;
       text-align: right;
@@ -84,7 +87,7 @@
       background: #f4f4f4 !important;
     }
 
-    /* 5️⃣ 小竖条：只在当前播放行显示 */
+    /* 5️⃣ 小竖条 */
     .aplayer .aplayer-list ol li .aplayer-list-cur {
       display: none !important; 
     }
@@ -156,19 +159,23 @@
       }, 60);
     }
 
-    // ✨ 修复后的居中滚动逻辑
+    // ✨ 核心修复：更鲁棒的局部滚动逻辑
     ap.on('listswitch', () => {
+      // 稍微延长延迟，确保 DOM 状态稳定
       setTimeout(() => {
         const listContainer = document.querySelector('.aplayer-list ol');
         const activeItem = document.querySelector('.aplayer-list-light');
+        
         if (listContainer && activeItem) {
-          // 算法优化：让当前项滚动到容器的正中心
-          // 目标滚动位置 = (当前项的顶部偏移) - (容器高度的一半) + (单行高度的一半)
-          // 在 3 行显示下，这相当于尽可能把当前项放在第 2 行。
-          const targetScroll = activeItem.offsetTop - (listContainer.offsetHeight / 2) + (activeItem.offsetHeight / 2);
+          // 26px 是单行高度。要把当前项放在第 2 行，
+          // 就需要把前一项 (N-1) 顶到第 1 行的位置。
+          // 所以 scrollTop 应该等于 (当前项的 offsetTop - 26)。
+          const targetScroll = activeItem.offsetTop - 26;
+          
+          // 执行局部滚动
           listContainer.scrollTop = targetScroll;
         }
-      }, 100);
+      }, 150);
       updateThemeSafe();
     });
 
