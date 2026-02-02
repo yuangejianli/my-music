@@ -10,7 +10,7 @@
       background: transparent;
     }
 
-    /* 1️⃣ 基础样式：无边框、无阴影 */
+    /* 1️⃣ 极简样式：无边框、无阴影 */
     .aplayer {
       border: none !important;
       box-shadow: none !important;
@@ -25,7 +25,7 @@
       border: none !important;
     }
 
-    /* 2️⃣ 列表容器：精准 3 首歌高度 (26px * 3 = 78px) */
+    /* 2️⃣ 列表尺寸：精准 3 首歌高度 (26px * 3 = 78px) */
     .aplayer .aplayer-list {
       max-height: 78px !important;
       overflow: hidden !important;
@@ -67,8 +67,6 @@
     .aplayer .aplayer-list ol li .aplayer-list-author {
       color: #333 !important; 
       font-size: 11px !important;
-      flex-shrink: 0;
-      text-align: right;
       margin-left: 10px;
     }
 
@@ -76,7 +74,7 @@
       background: #f4f4f4 !important;
     }
 
-    /* 5️⃣ 小竖条 */
+    /* 5️⃣ 小竖条：仅高亮行显示 */
     .aplayer .aplayer-list ol li .aplayer-list-cur {
       display: none !important; 
     }
@@ -116,56 +114,44 @@
 
     const colorThief = new ColorThief();
 
-    // ✨ 修复后的变色逻辑：直接从当前索引获取图片
-    function updateThemeByActive() {
-      const idx = ap.list.index; // 核心：直接用播放器的当前索引
-      const audio = audioList[idx];
+    // ✨ 变色龙核心函数
+    function chameleon() {
+      const index = ap.list.index;
+      const audio = audioList[index];
       if (!audio || !audio.cover) return;
 
       const img = new Image();
       img.crossOrigin = 'Anonymous';
-      img.referrerPolicy = 'no-referrer';
-      
-      img.onload = () => {
+      img.onload = function() {
         try {
-          const c = colorThief.getColor(img);
-          const themeColor = `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
-          ap.theme(themeColor, idx);
-          ap.container.style.setProperty('--zinnia-theme', themeColor);
-        } catch (e) {
-          console.error("ColorThief Error:", e);
-        }
+          const color = colorThief.getColor(img);
+          const rgb = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+          ap.theme(rgb, index); // 更新 APlayer 主题色
+          ap.container.style.setProperty('--zinnia-theme', rgb); // 更新 CSS 变量（小竖条）
+        } catch (e) {}
       };
-      // 加个随机后缀防止浏览器缓存导致 onload 不触发
-      img.src = audio.cover + "?v=" + new Date().getTime();
+      img.src = audio.cover;
     }
 
-    // ✨ 修复后的滚动逻辑：数学计算
-    function syncScrollPosition() {
-      const listContainer = document.querySelector('.aplayer-list ol');
-      if (!listContainer) return;
-
-      const idx = ap.list.index;
-      // 算法：尝试让当前曲目在 3 行中居中（出现在第 2 行）
-      // 第一行应该是 idx - 1
-      let targetPos = (idx - 1) * 26;
-      if (targetPos < 0) targetPos = 0;
-      
-      listContainer.scrollTop = targetPos;
+    // ✨ 滚动修正函数
+    function scrollFix() {
+      const container = document.querySelector('.aplayer-list ol');
+      const active = document.querySelector('.aplayer-list-light');
+      if (container && active) {
+        // 使用最原生的方法将当前曲目滚动到视野内，不再强求“对齐”
+        active.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
     }
 
-    // 监听切换事件
+    // 监听事件：切换歌曲时触发变色和滚动
     ap.on('listswitch', () => {
-      // 稍微给一点延迟，避开 APlayer 自带逻辑的干扰
-      setTimeout(() => {
-        updateThemeByActive();
-        syncScrollPosition();
-      }, 150);
+      chameleon();
+      setTimeout(scrollFix, 150); // 给一点延迟，等 DOM 渲染完再滚
     });
 
-    // 初始加载
+    // 页面初次加载
     window.addEventListener('load', () => {
-      setTimeout(updateThemeByActive, 500);
+      setTimeout(chameleon, 300);
     });
   </script>
 </body>
