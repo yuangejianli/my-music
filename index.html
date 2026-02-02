@@ -25,14 +25,8 @@
       border: none !important;
     }
 
-    /* 🌟 核心修改：使用 CSS 强制默认隐藏列表 🌟 */
-    /* 默认状态下（不带 .aplayer-withlist 类时），强行不显示列表 */
+    /* 2️⃣ 列表容器：精准 3 首歌高度 (26px * 3 = 78px) */
     .aplayer .aplayer-list {
-      display: none !important; 
-    }
-    /* 只有当用户点击按钮，播放器容器获得了 .aplayer-withlist 类时，才允许显示列表 */
-    .aplayer.aplayer-withlist .aplayer-list {
-      display: block !important;
       max-height: 78px !important;
       overflow: hidden !important;
     }
@@ -125,11 +119,15 @@
 
     const ap = new APlayer({
       container: document.getElementById('aplayer'),
-      listFolded: true, // 保持为 true
+      listFolded: true, // 保险 1：默认折叠开启
+      storageName: 'aplayer-setting-folded-final-v3', // 保险 2：更换全新 ID，强制浏览器清除记忆
       listMaxHeight: '78px', 
       audio: audioList,
       theme: '#e9e9e9'
     });
+
+    // 保险 3：JS 强制隐藏列表
+    ap.list.hide();
 
     const colorThief = new ColorThief();
     let themeTimer = null;
@@ -163,16 +161,17 @@
       }, 60);
     }
 
+    // ✨ 终极滚动修复逻辑
     ap.on('listswitch', () => {
       setTimeout(() => {
         const listContainer = document.querySelector('.aplayer-list ol');
         if (listContainer) {
-          const currentIndex = ap.list.index;
+          const currentIndex = ap.list.index; 
           let targetPos = 0;
           if (currentIndex > 0) {
             targetPos = (currentIndex - 1) * 26;
           } else {
-            targetPos = 0;
+            targetPos = 0; 
           }
           listContainer.scrollTop = targetPos;
         }
