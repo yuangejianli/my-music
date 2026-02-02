@@ -10,7 +10,7 @@
       background: transparent;
     }
 
-    /* 1️⃣ 极简样式：无边框、无阴影 */
+    /* 1️⃣ 基础样式：无边框、无阴影 */
     .aplayer {
       border: none !important;
       box-shadow: none !important;
@@ -25,7 +25,7 @@
       border: none !important;
     }
 
-    /* 2️⃣ 列表尺寸：精准 3 首歌高度 (26px * 3 = 78px) */
+    /* 2️⃣ 列表容器：精准 3 首歌高度 (26px * 3 = 78px) */
     .aplayer .aplayer-list {
       max-height: 78px !important;
       overflow: hidden !important;
@@ -37,14 +37,17 @@
       margin: 0 !important;
       padding: 0 !important;
       scroll-behavior: smooth; 
+      /* 隐藏滚动条 */
+      scrollbar-width: none !important;
     }
 
     .aplayer .aplayer-list ol::-webkit-scrollbar {
       display: none !important;
     }
 
-    /* 3️⃣ 列表行样式 (26px) */
+    /* 3️⃣ 列表行样式 (精准 26px) */
     .aplayer .aplayer-list ol li {
+      box-sizing: border-box !important; /* 强制盒模型，防止高度偏移 */
       background-image: none !important;
       height: 26px !important;   
       line-height: 26px !important;
@@ -52,9 +55,16 @@
       font-size: 12px !important;
       display: flex !important; 
       align-items: center !important;
+      position: relative;
     }
 
-    /* 4️⃣ 颜色统一：全部使用 #333 */
+    /* 4️⃣ 颜色一致性 */
+    .aplayer .aplayer-list ol li .aplayer-list-index {
+      color: #999;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+
     .aplayer .aplayer-list ol li .aplayer-list-title {
       color: #333 !important; 
       font-weight: 400 !important;
@@ -66,21 +76,26 @@
 
     .aplayer .aplayer-list ol li .aplayer-list-author {
       color: #333 !important; 
-      font-size: 11px !important;
+      font-size: 12px !important;
+      flex-shrink: 0;
+      text-align: right;
       margin-left: 10px;
     }
 
+    /* 当前播放行背景 */
     .aplayer .aplayer-list ol li.aplayer-list-light {
       background: #f4f4f4 !important;
     }
 
-    /* 5️⃣ 小竖条：仅高亮行显示 */
+    /* 5️⃣ 小竖条 */
     .aplayer .aplayer-list ol li .aplayer-list-cur {
       display: none !important; 
     }
 
     .aplayer .aplayer-list ol li.aplayer-list-light .aplayer-list-cur {
       display: block !important; 
+      position: absolute;
+      left: 0;
       width: 2px !important;
       height: 16px !important; 
       top: 5px !important;
@@ -113,45 +128,59 @@
     });
 
     const colorThief = new ColorThief();
+    let themeTimer = null;
 
-    // ✨ 变色龙核心函数
-    function chameleon() {
-      const index = ap.list.index;
-      const audio = audioList[index];
-      if (!audio || !audio.cover) return;
-
-      const img = new Image();
-      img.crossOrigin = 'Anonymous';
-      img.onload = function() {
-        try {
-          const color = colorThief.getColor(img);
-          const rgb = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
-          ap.theme(rgb, index); // 更新 APlayer 主题色
-          ap.container.style.setProperty('--zinnia-theme', rgb); // 更新 CSS 变量（小竖条）
-        } catch (e) {}
-      };
-      img.src = audio.cover;
-    }
-
-    // ✨ 滚动修正函数
-    function scrollFix() {
-      const container = document.querySelector('.aplayer-list ol');
+    function getActiveIndex() {
       const active = document.querySelector('.aplayer-list-light');
-      if (container && active) {
-        // 使用最原生的方法将当前曲目滚动到视野内，不再强求“对齐”
-        active.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
+      if (!active) return ap.list.index;
+      const di = active.getAttribute('data-index');
+      return (di !== null && di !== '') ? Number(di) : ap.list.index;
     }
 
-    // 监听事件：切换歌曲时触发变色和滚动
+    function updateThemeSafe() {
+      clearTimeout(themeTimer);
+      themeTimer = setTimeout(() => {
+        const index = getActiveIndex();
+        const imgUrl = audioList[index]?.cover;
+        if (!imgUrl) return;
+
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.referrerPolicy = 'no-referrer';
+        img.onload = () => {
+          try {
+            const c = colorThief.getColor(img);
+            const themeColor = `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
+            ap.theme(themeColor, index);
+            ap.container.style.setProperty('--zinnia-theme', themeColor);
+          } catch (e) {}
+        };
+        img.src = imgUrl + (imgUrl.includes('?') ? '&' : '?') + 'cb=' + Date.now();
+      }, 60);
+    }
+
+    // ✨ 核心修复：更鲁棒的局部滚动逻辑
     ap.on('listswitch', () => {
-      chameleon();
-      setTimeout(scrollFix, 150); // 给一点延迟，等 DOM 渲染完再滚
+      // 稍微延长延迟，确保 DOM 状态稳定
+      setTimeout(() => {
+        const listContainer = document.querySelector('.aplayer-list ol');
+        const activeItem = document.querySelector('.aplayer-list-light');
+        
+        if (listContainer && activeItem) {
+          // 26px 是单行高度。要把当前项放在第 2 行，
+          // 就需要把前一项 (N-1) 顶到第 1 行的位置。
+          // 所以 scrollTop 应该等于 (当前项的 offsetTop - 26)。
+          const targetScroll = activeItem.offsetTop - 26;
+          
+          // 执行局部滚动
+          listContainer.scrollTop = targetScroll;
+        }
+      }, 150);
+      updateThemeSafe();
     });
 
-    // 页面初次加载
     window.addEventListener('load', () => {
-      setTimeout(chameleon, 300);
+      setTimeout(updateThemeSafe, 300);
     });
   </script>
 </body>
