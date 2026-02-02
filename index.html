@@ -36,10 +36,11 @@
       overflow-y: auto !important;
       margin: 0 !important;
       padding: 0 !important;
-      scroll-behavior: smooth; 
-      scrollbar-width: none !important;
+      /* 关闭 CSS 的平滑滚动，防止和 JS 逻辑冲突 */
+      scroll-behavior: auto !important; 
     }
 
+    /* 彻底隐藏滚动条 */
     .aplayer .aplayer-list ol::-webkit-scrollbar {
       display: none !important;
     }
@@ -57,7 +58,7 @@
       position: relative;
     }
 
-    /* 4️⃣ 颜色完全统一：全员 #333 */
+    /* 4️⃣ 颜色与文字对齐 */
     .aplayer .aplayer-list ol li .aplayer-list-index {
       color: #999;
       margin-right: 12px;
@@ -74,7 +75,7 @@
     }
 
     .aplayer .aplayer-list ol li .aplayer-list-author {
-      color: #333 !important; /* 统一颜色 */
+      color: #333 !important; 
       font-size: 12px !important;
       flex-shrink: 0;
       text-align: right;
@@ -126,67 +127,61 @@
     });
 
     const colorThief = new ColorThief();
-    let themeTimer = null;
-
-    function getActiveIndex() {
-      const active = document.querySelector('.aplayer-list-light');
-      if (!active) return ap.list.index;
-      const di = active.getAttribute('data-index');
-      return (di !== null && di !== '') ? Number(di) : ap.list.index;
-    }
 
     function updateThemeSafe() {
-      clearTimeout(themeTimer);
-      themeTimer = setTimeout(() => {
-        const index = getActiveIndex();
-        const imgUrl = audioList[index]?.cover;
-        if (!imgUrl) return;
+      const active = document.querySelector('.aplayer-list-light');
+      const index = active ? Number(active.getAttribute('data-index')) : ap.list.index;
+      const imgUrl = audioList[index]?.cover;
+      if (!imgUrl) return;
 
-        const img = new Image();
-        img.crossOrigin = 'Anonymous';
-        img.referrerPolicy = 'no-referrer';
-        img.onload = () => {
-          try {
-            const c = colorThief.getColor(img);
-            const themeColor = `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
-            ap.theme(themeColor, index);
-            ap.container.style.setProperty('--zinnia-theme', themeColor);
-          } catch (e) {}
-        };
-        img.src = imgUrl + (imgUrl.includes('?') ? '&' : '?') + 'cb=' + Date.now();
-      }, 60);
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.referrerPolicy = 'no-referrer';
+      img.onload = () => {
+        try {
+          const c = colorThief.getColor(img);
+          const themeColor = `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
+          ap.theme(themeColor, index);
+          ap.container.style.setProperty('--zinnia-theme', themeColor);
+        } catch (e) {}
+      };
+      img.src = imgUrl + (imgUrl.includes('?') ? '&' : '?') + 'cb=' + Date.now();
     }
 
-    // ✨ 终极滚动修复逻辑
-    ap.on('listswitch', () => {
-      // 延迟 250ms，确保赢过 APlayer 的原生自动滚动
-      setTimeout(() => {
-        const listContainer = document.querySelector('.aplayer-list ol');
-        if (listContainer) {
-          const currentIndex = ap.list.index; // 获取当前播放歌曲的序号 (从0开始)
-          
-          /* 
-            核心逻辑：
-            我们要让序号为 i 的歌曲出现在第 2 行。
-            这意味着列表的第一行应该是序号为 i - 1 的歌曲。
-            每一行的高度固定是 26px。
-            所以列表应该滚动的距离 = (i - 1) * 26。
-          */
-          let targetPos = 0;
-          if (currentIndex > 0) {
-            targetPos = (currentIndex - 1) * 26;
-          } else {
-            targetPos = 0; // 如果播放的是第一首，滚动条就在最顶端
-          }
+    // ✨ 核心滚动修正函数
+    function forceScrollToMiddle() {
+      const listContainer = document.querySelector('.aplayer-list ol');
+      if (!listContainer) return;
 
-          listContainer.scrollTop = targetPos;
-        }
-      }, 250); 
+      const currentIndex = ap.list.index; 
+      
+      /* 
+        我们要让正在播放的歌曲出现在 3 行中的中间（第 2 行）。
+        所以列表的第一行应该是它的前一首歌。
+        滚动高度 = (当前序号 - 1) * 26 
+      */
+      let targetPos = (currentIndex - 1) * 26;
+      if (targetPos < 0) targetPos = 0;
+
+      // 使用 scrollTo 并禁用平滑动画，确保瞬间纠正 APlayer 的错误置顶
+      listContainer.scrollTo({ top: targetPos, behavior: 'instant' });
+    }
+
+    // 在切换和播放时都触发修正
+    ap.on('listswitch', () => {
+      // 执行两次修正，彻底盖过原生逻辑
+      setTimeout(forceScrollToMiddle, 50);
+      setTimeout(forceScrollToMiddle, 250);
       updateThemeSafe();
+    });
+
+    ap.on('play', () => {
+      setTimeout(forceScrollToMiddle, 100);
     });
 
     window.addEventListener('load', () => {
       setTimeout(updateThemeSafe, 300);
+      setTimeout(forceScrollToMiddle, 500);
     });
   </script>
 </body>
