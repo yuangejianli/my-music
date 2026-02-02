@@ -35,7 +35,7 @@
       max-height: 78px !important;
       overflow-y: auto !important;
       margin: 0 !important;
-      padding: 2px 0 !important; /* ✨ 顶部微调偏移，防止切边 */
+      padding: 0 !important;
       scroll-behavior: smooth; 
     }
 
@@ -54,7 +54,7 @@
       align-items: center !important;
     }
 
-    /* 4️⃣ 颜色完全统一 */
+    /* 4️⃣ 颜色统一：全部使用 #333 */
     .aplayer .aplayer-list ol li .aplayer-list-title {
       color: #333 !important; 
       font-weight: 400 !important;
@@ -76,7 +76,7 @@
       background: #f4f4f4 !important;
     }
 
-    /* 5️⃣ 小竖条：只在高亮行显示 */
+    /* 5️⃣ 小竖条 */
     .aplayer .aplayer-list ol li .aplayer-list-cur {
       display: none !important; 
     }
@@ -116,42 +116,56 @@
 
     const colorThief = new ColorThief();
 
-    function updateThemeSafe() {
-      const active = document.querySelector('.aplayer-list-light');
-      const index = active ? Number(active.getAttribute('data-index')) : ap.list.index;
-      const imgUrl = audioList[index]?.cover;
-      if (!imgUrl) return;
+    // ✨ 修复后的变色逻辑：直接从当前索引获取图片
+    function updateThemeByActive() {
+      const idx = ap.list.index; // 核心：直接用播放器的当前索引
+      const audio = audioList[idx];
+      if (!audio || !audio.cover) return;
 
       const img = new Image();
       img.crossOrigin = 'Anonymous';
       img.referrerPolicy = 'no-referrer';
+      
       img.onload = () => {
         try {
           const c = colorThief.getColor(img);
           const themeColor = `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
-          ap.theme(themeColor, index);
+          ap.theme(themeColor, idx);
           ap.container.style.setProperty('--zinnia-theme', themeColor);
-        } catch (e) {}
+        } catch (e) {
+          console.error("ColorThief Error:", e);
+        }
       };
-      img.src = imgUrl + (imgUrl.includes('?') ? '&' : '?') + 'cb=' + Date.now();
+      // 加个随机后缀防止浏览器缓存导致 onload 不触发
+      img.src = audio.cover + "?v=" + new Date().getTime();
     }
 
-    // ✨ 稳健的局部滚动逻辑
+    // ✨ 修复后的滚动逻辑：数学计算
+    function syncScrollPosition() {
+      const listContainer = document.querySelector('.aplayer-list ol');
+      if (!listContainer) return;
+
+      const idx = ap.list.index;
+      // 算法：尝试让当前曲目在 3 行中居中（出现在第 2 行）
+      // 第一行应该是 idx - 1
+      let targetPos = (idx - 1) * 26;
+      if (targetPos < 0) targetPos = 0;
+      
+      listContainer.scrollTop = targetPos;
+    }
+
+    // 监听切换事件
     ap.on('listswitch', () => {
+      // 稍微给一点延迟，避开 APlayer 自带逻辑的干扰
       setTimeout(() => {
-        const listContainer = document.querySelector('.aplayer-list ol');
-        const activeItem = document.querySelector('.aplayer-list-light');
-        if (listContainer && activeItem) {
-          // 直接将活跃项滚动到列表最上方
-          // APlayer 默认行为已经很成熟，我们只在它切换完之后确认一下位置
-          listContainer.scrollTop = activeItem.offsetTop;
-        }
-      }, 100);
-      updateThemeSafe();
+        updateThemeByActive();
+        syncScrollPosition();
+      }, 150);
     });
 
+    // 初始加载
     window.addEventListener('load', () => {
-      setTimeout(updateThemeSafe, 300);
+      setTimeout(updateThemeByActive, 500);
     });
   </script>
 </body>
