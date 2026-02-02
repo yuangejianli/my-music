@@ -19,21 +19,21 @@
       --zinnia-theme: #e9e9e9;
     }
 
-    /* 强制去掉内部所有分割线 */
+    /* 彻底去掉内部所有分割线和边框 */
     .aplayer .aplayer-info,
     .aplayer .aplayer-list,
     .aplayer .aplayer-list ol li {
       border: none !important;
     }
 
-    /* 2️⃣ 列表高度与滚动逻辑 */
+    /* 2️⃣ 列表高度与滚动逻辑 - 调整为精准显示3首的高度 (32px * 3 = 96px) */
     .aplayer .aplayer-list {
-      max-height: 100px !important;
+      max-height: 96px !important;
       overflow: hidden !important;
     }
 
     .aplayer .aplayer-list ol {
-      max-height: 100px !important;
+      max-height: 96px !important;
       overflow-y: auto !important;
       margin: 0 !important;
       padding: 0 !important;
@@ -56,13 +56,15 @@
       display: none !important;
     }
 
-    /* 4️⃣ 列表行高度调回 28px */
+    /* 4️⃣ 列表行高度恢复 32px，字体 13px */
     .aplayer .aplayer-list ol li {
       background-image: none !important;
-      height: 28px !important;   
-      line-height: 28px !important;
+      height: 32px !important;   
+      line-height: 32px !important;
       padding: 0 15px !important;
-      font-size: 12px !important;
+      font-size: 13px !important; /* 字体加大，更易读 */
+      display: flex;
+      align-items: center;
     }
 
     /* 5️⃣ 当前播放行高亮 */
@@ -70,19 +72,24 @@
       background: #f0f0f0 !important;
     }
 
-    /* 6️⃣ 左侧小竖条 - 适配 28px */
+    /* 6️⃣ 左侧小竖条 - 适配 32px */
     .aplayer .aplayer-list ol li .aplayer-list-cur {
       width: 2px !important;
-      height: 20px !important; 
-      top: 4px !important;
+      height: 22px !important; 
+      top: 5px !important;
       background: var(--zinnia-theme) !important;
     }
     
-    /* 修正文字排版 */
+    /* 修正文字对齐 */
     .aplayer .aplayer-list ol li .aplayer-list-title,
+    .aplayer .aplayer-list ol li .aplayer-list-author,
+    .aplayer .aplayer-list ol li .aplayer-list-index {
+      line-height: 32px !important;
+      height: 32px !important;
+    }
     .aplayer .aplayer-list ol li .aplayer-list-author {
-      line-height: 28px !important;
-      height: 28px !important;
+      margin-left: 10px;
+      opacity: 0.6;
     }
   </style>
 </head>
@@ -105,7 +112,7 @@
     const ap = new APlayer({
       container: document.getElementById('aplayer'),
       listFolded: false,
-      listMaxHeight: '100px',
+      listMaxHeight: '96px', // 精准适配 32px * 3
       audio: audioList,
       theme: '#e9e9e9'
     });
