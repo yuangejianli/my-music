@@ -74,7 +74,7 @@
     }
 
     .aplayer .aplayer-list ol li .aplayer-list-author {
-      color: #333 !important; /* 统一颜色 */
+      color: #333 !important; 
       font-size: 12px !important;
       flex-shrink: 0;
       text-align: right;
@@ -119,11 +119,15 @@
 
     const ap = new APlayer({
       container: document.getElementById('aplayer'),
-      listFolded: true, // ✨ 核心改动：已改为默认折叠
+      listFolded: true, // 设置默认折叠
+      storageName: 'aplayer-setting-unique', // ✨ 关键：改个名字避开浏览器之前的展开记录
       listMaxHeight: '78px', 
       audio: audioList,
       theme: '#e9e9e9'
     });
+
+    // ✨ 强制执行一次隐藏指令
+    ap.list.hide();
 
     const colorThief = new ColorThief();
     let themeTimer = null;
@@ -157,28 +161,17 @@
       }, 60);
     }
 
-    // ✨ 终极滚动修复逻辑
     ap.on('listswitch', () => {
-      // 延迟 250ms，确保赢过 APlayer 的原生自动滚动
       setTimeout(() => {
         const listContainer = document.querySelector('.aplayer-list ol');
         if (listContainer) {
-          const currentIndex = ap.list.index; // 获取当前播放歌曲的序号 (从0开始)
-          
-          /* 
-            核心逻辑：
-            我们要让序号为 i 的歌曲出现在第 2 行。
-            这意味着列表的第一行应该是序号为 i - 1 的歌曲。
-            每一行的高度固定是 26px。
-            所以列表应该滚动的距离 = (i - 1) * 26。
-          */
+          const currentIndex = ap.list.index;
           let targetPos = 0;
           if (currentIndex > 0) {
             targetPos = (currentIndex - 1) * 26;
           } else {
-            targetPos = 0; // 如果播放的是第一首，滚动条就在最顶端
+            targetPos = 0;
           }
-
           listContainer.scrollTop = targetPos;
         }
       }, 250); 
