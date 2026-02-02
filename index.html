@@ -26,14 +26,14 @@
       border: none !important;
     }
 
-    /* 2️⃣ 列表高度与滚动逻辑 - 调整为精准显示3首的高度 (27px * 3 = 81px) */
+    /* 2️⃣ 列表高度与滚动逻辑 - 精准适配 3 首歌 (26px * 3 = 78px) */
     .aplayer .aplayer-list {
-      max-height: 81px !important;
+      max-height: 78px !important;
       overflow: hidden !important;
     }
 
     .aplayer .aplayer-list ol {
-      max-height: 81px !important;
+      max-height: 78px !important;
       overflow-y: auto !important;
       margin: 0 !important;
       padding: 0 !important;
@@ -56,13 +56,13 @@
       display: none !important;
     }
 
-    /* 4️⃣ 列表行高度恢复 32px，字体 13px */
+    /* 4️⃣ 列表行高度 26px，字号 12px */
     .aplayer .aplayer-list ol li {
       background-image: none !important;
-      height: 27px !important;   
-      line-height: 27px !important;
+      height: 26px !important;   
+      line-height: 26px !important;
       padding: 0 15px !important;
-      font-size: 13px !important; /* 字体加大，更易读 */
+      font-size: 12px !important; 
       display: flex;
       align-items: center;
     }
@@ -72,24 +72,24 @@
       background: #f0f0f0 !important;
     }
 
-    /* 6️⃣ 左侧小竖条 - 适配 32px */
+    /* 6️⃣ 左侧小竖条 - 适配 26px */
     .aplayer .aplayer-list ol li .aplayer-list-cur {
       width: 2px !important;
-      height: 22px !important; 
+      height: 16px !important; 
       top: 5px !important;
       background: var(--zinnia-theme) !important;
     }
     
-    /* 修正文字对齐 */
+    /* 文字垂直对齐优化 */
     .aplayer .aplayer-list ol li .aplayer-list-title,
     .aplayer .aplayer-list ol li .aplayer-list-author,
     .aplayer .aplayer-list ol li .aplayer-list-index {
-      line-height: 27px !important;
-      height: 327px !important;
+      line-height: 26px !important;
+      height: 26px !important;
     }
     .aplayer .aplayer-list ol li .aplayer-list-author {
       margin-left: 10px;
-      opacity: 0.6;
+      opacity: 0.5;
     }
   </style>
 </head>
@@ -112,7 +112,7 @@
     const ap = new APlayer({
       container: document.getElementById('aplayer'),
       listFolded: false,
-      listMaxHeight: '96px', // 精准适配 32px * 3
+      listMaxHeight: '78px', // 适配 3 首 * 26px
       audio: audioList,
       theme: '#e9e9e9'
     });
