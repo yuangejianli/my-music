@@ -25,17 +25,17 @@
       border: none !important;
     }
 
-    /* 2️⃣ 列表尺寸：精准 3 首歌高度 (26px * 3 = 78px) */
+    /* 2️⃣ 列表尺寸：微调为 80px，给 26px*3 留出 2px 的渲染容错空间 */
     .aplayer .aplayer-list {
-      max-height: 78px !important;
+      max-height: 80px !important; 
       overflow: hidden !important;
     }
 
     .aplayer .aplayer-list ol {
-      max-height: 78px !important;
+      max-height: 80px !important;
       overflow-y: auto !important;
       margin: 0 !important;
-      padding: 0 !important;
+      padding: 1px 0 !important; /* ✨ 微调保护垫 */
       scroll-behavior: smooth; 
     }
 
@@ -107,14 +107,14 @@
     const ap = new APlayer({
       container: document.getElementById('aplayer'),
       listFolded: false,
-      listMaxHeight: '78px', 
+      listMaxHeight: '80px', 
       audio: audioList,
       theme: '#e9e9e9'
     });
 
     const colorThief = new ColorThief();
 
-    // ✨ 变色龙核心函数
+    // ✨ 变色龙核心函数（保持你最稳定的版本不变）
     function chameleon() {
       const index = ap.list.index;
       const audio = audioList[index];
@@ -126,30 +126,35 @@
         try {
           const color = colorThief.getColor(img);
           const rgb = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
-          ap.theme(rgb, index); // 更新 APlayer 主题色
-          ap.container.style.setProperty('--zinnia-theme', rgb); // 更新 CSS 变量（小竖条）
+          ap.theme(rgb, index);
+          ap.container.style.setProperty('--zinnia-theme', rgb);
         } catch (e) {}
       };
       img.src = audio.cover;
     }
 
-    // ✨ 滚动修正函数
+    // ✨ 滚动修正函数：改为精准数学居中，不再“贴边”
     function scrollFix() {
       const container = document.querySelector('.aplayer-list ol');
-      const active = document.querySelector('.aplayer-list-light');
-      if (container && active) {
-        // 使用最原生的方法将当前曲目滚动到视野内，不再强求“对齐”
-        active.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      if (container) {
+        // 当前歌曲序号
+        const idx = ap.list.index;
+        // 目标：让当前歌出现在第 2 行。
+        // 所以让第 (idx-1) 首歌滚到最上面。每一行 26px。
+        const targetScroll = (idx - 1) * 26;
+        container.scrollTo({
+          top: targetScroll,
+          behavior: 'smooth'
+        });
       }
     }
 
-    // 监听事件：切换歌曲时触发变色和滚动
+    // 监听事件：切换歌曲时触发
     ap.on('listswitch', () => {
       chameleon();
-      setTimeout(scrollFix, 150); // 给一点延迟，等 DOM 渲染完再滚
+      setTimeout(scrollFix, 150); 
     });
 
-    // 页面初次加载
     window.addEventListener('load', () => {
       setTimeout(chameleon, 300);
     });
