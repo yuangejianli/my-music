@@ -52,20 +52,33 @@
       line-height: 26px !important;
       padding: 0 15px !important;
       font-size: 12px !important;
-      display: flex !important; /* 修正对齐 */
+      display: flex !important; 
       align-items: center !important;
+      position: relative; /* 为小竖条定位 */
     }
 
-    /* 4️⃣ 颜色统一优化 */
+    /* 4️⃣ 布局与颜色优化 */
+    .aplayer .aplayer-list ol li .aplayer-list-index {
+      color: #999;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+
     .aplayer .aplayer-list ol li .aplayer-list-title {
-      color: #333 !important; /* 歌名深灰 */
+      color: #333 !important; 
       font-weight: 400 !important;
+      flex-grow: 1; /* ✨ 关键：让歌名占据剩余空间，把歌手推向右侧 */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .aplayer .aplayer-list ol li .aplayer-list-author {
-      color: #555 !important; /* 歌手颜色调深，接近歌名 */
-      margin-left: 12px !important;
+      color: #666 !important; /* 歌手颜色 */
       font-size: 11px !important;
+      flex-shrink: 0;
+      text-align: right;
+      margin-left: 10px;
     }
 
     /* 当前播放行背景 */
@@ -73,23 +86,19 @@
       background: #f4f4f4 !important;
     }
 
-    /* 5️⃣ 修正小竖条：默认隐藏，只在当前播放行显示 */
+    /* 5️⃣ 小竖条修复：只在当前播放行显示 */
     .aplayer .aplayer-list ol li .aplayer-list-cur {
-      display: none !important; /* 全局隐藏 */
+      display: none !important; 
     }
 
     .aplayer .aplayer-list ol li.aplayer-list-light .aplayer-list-cur {
-      display: block !important; /* 仅高亮行显示 */
+      display: block !important; 
+      position: absolute;
+      left: 0;
       width: 2px !important;
       height: 16px !important; 
       top: 5px !important;
       background: var(--zinnia-theme) !important;
-    }
-    
-    /* 修正序号位置 */
-    .aplayer .aplayer-list ol li .aplayer-list-index {
-      color: #999;
-      margin-right: 12px;
     }
   </style>
 </head>
