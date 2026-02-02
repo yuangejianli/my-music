@@ -10,10 +10,10 @@
       background: transparent;
     }
 
-    /* 1️⃣ 播放器样式 - 找回边框，保持无阴影 */
+    /* 1️⃣ 播放器样式 - 无边框、无阴影 */
     .aplayer {
-      border-radius: 4px !important; /* 加了一点点圆角，配合边框更好看 */
-      border: 1px solid #e0e0e0 !important; /* 浅灰色细边框 */
+      border-radius: 0 !important;
+      border: none !important;
       background: #fff;
       box-shadow: none !important; 
       --zinnia-theme: #e9e9e9;
@@ -49,14 +49,16 @@
       display: none !important;
     }
 
-    /* 4️⃣ 列表行高度微调 - 调矮一点点 */
+    /* 4️⃣ 列表行高度调至 21px */
     .aplayer .aplayer-list ol li {
       border: none !important;
       background-image: none !important;
-      height: 21px !important;   /* 标准是32px，这里调矮到28px */
+      height: 21px !important;   /* 用户指定高度 */
       line-height: 21px !important;
-      padding: 0 15px !important;
-      font-size: 12px !important; /* 配合高度稍微减小一点点字号 */
+      padding: 0 12px !important;
+      font-size: 11px !important; /* 高度极低，字号相应调小 */
+      display: flex;
+      align-items: center;
     }
 
     /* 5️⃣ 当前播放行高亮 */
@@ -64,18 +66,24 @@
       background: #f0f0f0 !important;
     }
 
-    /* 6️⃣ 左侧小竖条 */
+    /* 6️⃣ 左侧小竖条 - 随 21px 行高进行微调 */
     .aplayer .aplayer-list ol li .aplayer-list-cur {
       width: 2px !important;
-      height: 20px !important; /* 随行高缩短一点点 */
-      top: 4px !important;
+      height: 14px !important; 
+      top: 3.5px !important;
       background: var(--zinnia-theme) !important;
     }
     
-    /* 修正播放列表里的文字对齐 */
+    /* 修正播放列表里的文字容器高度 */
     .aplayer .aplayer-list ol li .aplayer-list-title,
+    .aplayer .aplayer-list ol li .aplayer-list-author,
+    .aplayer .aplayer-list ol li .aplayer-list-index {
+      line-height: 21px !important;
+      height: 21px !important;
+    }
+
     .aplayer .aplayer-list ol li .aplayer-list-author {
-      line-height: 28px !important;
+      margin-left: 8px;
     }
   </style>
 </head>
@@ -135,6 +143,7 @@
       }, 60);
     }
 
+    // 内部局部滚动逻辑，不触发外部页面跳转
     ap.on('listswitch', () => {
       setTimeout(() => {
         const listContainer = document.querySelector('.aplayer-list ol');
