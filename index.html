@@ -35,19 +35,16 @@
       max-height: 78px !important;
       overflow-y: auto !important;
       margin: 0 !important;
-      padding: 0 !important;
-      /* 关闭 CSS 的平滑滚动，防止和 JS 逻辑冲突 */
-      scroll-behavior: auto !important; 
+      padding: 2px 0 !important; /* ✨ 顶部微调偏移，防止切边 */
+      scroll-behavior: smooth; 
     }
 
-    /* 彻底隐藏滚动条 */
     .aplayer .aplayer-list ol::-webkit-scrollbar {
       display: none !important;
     }
 
-    /* 3️⃣ 列表行样式 (严格 26px) */
+    /* 3️⃣ 列表行样式 (26px) */
     .aplayer .aplayer-list ol li {
-      box-sizing: border-box !important;
       background-image: none !important;
       height: 26px !important;   
       line-height: 26px !important;
@@ -55,16 +52,9 @@
       font-size: 12px !important;
       display: flex !important; 
       align-items: center !important;
-      position: relative;
     }
 
-    /* 4️⃣ 颜色与文字对齐 */
-    .aplayer .aplayer-list ol li .aplayer-list-index {
-      color: #999;
-      margin-right: 12px;
-      flex-shrink: 0;
-    }
-
+    /* 4️⃣ 颜色完全统一 */
     .aplayer .aplayer-list ol li .aplayer-list-title {
       color: #333 !important; 
       font-weight: 400 !important;
@@ -76,7 +66,7 @@
 
     .aplayer .aplayer-list ol li .aplayer-list-author {
       color: #333 !important; 
-      font-size: 12px !important;
+      font-size: 11px !important;
       flex-shrink: 0;
       text-align: right;
       margin-left: 10px;
@@ -86,15 +76,13 @@
       background: #f4f4f4 !important;
     }
 
-    /* 5️⃣ 小竖条 */
+    /* 5️⃣ 小竖条：只在高亮行显示 */
     .aplayer .aplayer-list ol li .aplayer-list-cur {
       display: none !important; 
     }
 
     .aplayer .aplayer-list ol li.aplayer-list-light .aplayer-list-cur {
       display: block !important; 
-      position: absolute;
-      left: 0;
       width: 2px !important;
       height: 16px !important; 
       top: 5px !important;
@@ -148,40 +136,22 @@
       img.src = imgUrl + (imgUrl.includes('?') ? '&' : '?') + 'cb=' + Date.now();
     }
 
-    // ✨ 核心滚动修正函数
-    function forceScrollToMiddle() {
-      const listContainer = document.querySelector('.aplayer-list ol');
-      if (!listContainer) return;
-
-      const currentIndex = ap.list.index; 
-      
-      /* 
-        我们要让正在播放的歌曲出现在 3 行中的中间（第 2 行）。
-        所以列表的第一行应该是它的前一首歌。
-        滚动高度 = (当前序号 - 1) * 26 
-      */
-      let targetPos = (currentIndex - 1) * 26;
-      if (targetPos < 0) targetPos = 0;
-
-      // 使用 scrollTo 并禁用平滑动画，确保瞬间纠正 APlayer 的错误置顶
-      listContainer.scrollTo({ top: targetPos, behavior: 'instant' });
-    }
-
-    // 在切换和播放时都触发修正
+    // ✨ 稳健的局部滚动逻辑
     ap.on('listswitch', () => {
-      // 执行两次修正，彻底盖过原生逻辑
-      setTimeout(forceScrollToMiddle, 50);
-      setTimeout(forceScrollToMiddle, 250);
+      setTimeout(() => {
+        const listContainer = document.querySelector('.aplayer-list ol');
+        const activeItem = document.querySelector('.aplayer-list-light');
+        if (listContainer && activeItem) {
+          // 直接将活跃项滚动到列表最上方
+          // APlayer 默认行为已经很成熟，我们只在它切换完之后确认一下位置
+          listContainer.scrollTop = activeItem.offsetTop;
+        }
+      }, 100);
       updateThemeSafe();
-    });
-
-    ap.on('play', () => {
-      setTimeout(forceScrollToMiddle, 100);
     });
 
     window.addEventListener('load', () => {
       setTimeout(updateThemeSafe, 300);
-      setTimeout(forceScrollToMiddle, 500);
     });
   </script>
 </body>
