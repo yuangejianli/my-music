@@ -1,185 +1,241 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
+  <meta charset="UTF-8">
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css">
-<script src="https://cdn.jsdelivr.net/npm/colorthief@2.3.2/dist/color-thief.umd.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/colorthief@2.3.2/dist/color-thief.umd.js"></script>
 
-<style>
-body {
-  margin: 15px;
-  background: transparent;
-}
+  <style>
+    body {
+      margin: 15px;
+      background: transparent;
+    }
 
-/* 极简 */
-.aplayer {
-  border: none !important;
-  box-shadow: none !important;
-  background: #fff;
-  border-radius: 0 !important;
-  --zinnia-theme: #e9e99;
-}
+    /* 极简样式 */
+    .aplayer {
+      border: none !important;
+      box-shadow: none !important;
+      background: #fff;
+      border-radius: 0 !important;
+      --zinnia-theme: #e9e9e9;
+    }
 
-.aplayer .aplayer-info,
-.aplayer .aplayer-list,
-.aplayer .aplayer-list ol li {
-  border: none !important;
-}
+    .aplayer .aplayer-info,
+    .aplayer .aplayer-list,
+    .aplayer .aplayer-list ol li {
+      border: none !important;
+    }
 
-/* 固定高度 */
-.aplayer .aplayer-list {
-  max-height: 78px !important;
-  overflow: hidden !important;
-}
+    /* 列表高度：3 行 */
+    .aplayer .aplayer-list {
+      max-height: 78px !important;
+      overflow: hidden !important;
+    }
 
-.aplayer .aplayer-list ol {
-  max-height: 78px !important;
-  overflow-y: auto !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  scroll-behavior: auto !important;
-}
+    .aplayer .aplayer-list ol {
+      max-height: 78px !important;
+      overflow-y: auto !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      box-sizing: border-box !important;
+    }
 
-/* 行高 */
-.aplayer .aplayer-list ol li {
-  height: 26px !important;
-  line-height: 26px !important;
-  padding: 0 15px !important;
-  font-size: 12px !important;
+    .aplayer .aplayer-list ol::-webkit-scrollbar {
+      display: none !important;
+    }
 
-  display: flex !important;
-  align-items: center !important;
-}
+    /* 单行高度 */
+    .aplayer .aplayer-list ol li {
+      height: 26px !important;
+      line-height: 26px !important;
+      padding: 0 15px !important;
+      font-size: 12px !important;
 
-.aplayer .aplayer-list-title {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+      display: flex !important;
+      align-items: center !important;
 
-/* 高亮 */
-.aplayer-list-light {
-  background: #f4f4f4 !important;
-}
+      background-image: none !important;
+    }
 
-/* 小竖条 */
-.aplayer-list-cur {
-  display: none !important;
-}
+    /* 标题 */
+    .aplayer .aplayer-list ol li .aplayer-list-title {
+      color: #333 !important;
+      font-weight: 400 !important;
 
-.aplayer-list-light .aplayer-list-cur {
-  display: block !important;
-  width: 2px !important;
-  height: 16px !important;
-  background: var(--zinnia-theme) !important;
-}
-</style>
+      flex-grow: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* 作者 */
+    .aplayer .aplayer-list ol li .aplayer-list-author {
+      color: #333 !important;
+      font-size: 11px !important;
+      margin-left: 10px;
+    }
+
+    /* 高亮行 */
+    .aplayer .aplayer-list ol li.aplayer-list-light {
+      background: #f4f4f4 !important;
+    }
+
+    /* 小竖条 */
+    .aplayer .aplayer-list ol li .aplayer-list-cur {
+      display: none !important;
+    }
+
+    .aplayer .aplayer-list ol li.aplayer-list-light .aplayer-list-cur {
+      display: block !important;
+      width: 2px !important;
+      height: 16px !important;
+      top: 5px !important;
+      background: var(--zinnia-theme) !important;
+    }
+
+  </style>
 </head>
 
 <body>
 
-<div id="aplayer"></div>
+  <div id="aplayer"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script>
 
-<script>
+  <script>
 
-const audioList = [
-  {
-    name: 'Her Silence',
-    artist: '何真真',
-    url: 'music/何真真 - Her Silence.mp3',
-    cover: 'cover/何真真 - Her Silence.jpg'
-  },
-  {
-    name: 'Hurricanes',
-    artist: 'Dido',
-    url: 'music/Dido - Hurricanes.mp3',
-    cover: 'cover/Dido - Hurricanes.jpg'
-  },
-  {
-    name: 'Everytime you kissed me',
-    artist: 'FictionJunction',
-    url: 'music/FictionJunction - Everytime you kissed me.mp3',
-    cover: 'cover/FictionJunction - Everytime you kissed me.jpg'
-  },
-  {
-    name: '沙尘的彼方',
-    artist: 'FictionJunction',
-    url: 'music/FictionJunction - 沙尘的彼方.mp3',
-    cover: 'cover/FictionJunction - 沙尘的彼方.jpg'
-  }
-];
+    /* 歌单 */
 
-const ap = new APlayer({
-  container: document.getElementById('aplayer'),
-  listFolded: false,
-  listMaxHeight: 78,
-  audio: audioList,
-  theme: '#e9e9e9'
-});
+    const audioList = [
 
-const colorThief = new ColorThief();
+      { name: 'Her Silence', artist: '何真真', url: 'music/何真真 - Her Silence.mp3', cover: 'cover/何真真 - Her Silence.jpg' },
 
-/* 等封面加载完再取色 */
-function updateTheme() {
+      { name: 'Hurricanes', artist: 'Dido', url: 'music/Dido - Hurricanes.mp3', cover: 'cover/Dido - Hurricanes.jpg' },
 
-  const index = ap.list.index;
-  const cover = audioList[index]?.cover;
+      { name: 'Everytime you kissed me', artist: 'FictionJunction', url: 'music/FictionJunction - Everytime you kissed me.mp3', cover: 'cover/FictionJunction - Everytime you kissed me.jpg' },
 
-  if (!cover) return;
+      { name: '沙尘的彼方', artist: 'FictionJunction', url: 'music/FictionJunction - 沙尘的彼方.mp3', cover: 'cover/FictionJunction - 沙尘的彼方.jpg' },
 
-  const img = new Image();
-  img.crossOrigin = 'anonymous';
+      { name: 'My long forgotten cloistered sleep', artist: 'FictionJunction', url: 'music/FictionJunction - My long forgotten cloistered sleep.mp3', cover: 'cover/FictionJunction - My long forgotten cloistered sleep.jpg' },
 
-  img.onload = () => {
+      { name: '花守之丘', artist: 'FictionJunction', url: 'music/FictionJunction - 花守之丘.mp3', cover: 'cover/FictionJunction - 花守之丘.jpg' },
 
-    try {
-      const color = colorThief.getColor(img);
-      const rgb = `rgb(${color[0]},${color[1]},${color[2]})`;
+      { name: 'Rewrite The Stars', artist: 'Zendaya', url: 'music/Zendaya - Rewrite The Stars.mp3', cover: 'cover/Zendaya - Rewrite The Stars.jpg' }
 
-      ap.theme(rgb, index);
-      ap.container.style.setProperty('--zinnia-theme', rgb);
-
-    } catch(e) {}
-  };
-
-  img.src = cover;
-}
+    ];
 
 
-/* 用官方方法滚动 */
-function fixScroll() {
+    /* 初始化 */
 
-  ap.list.switch(ap.list.index);
+    const ap = new APlayer({
 
-}
+      container: document.getElementById('aplayer'),
+
+      listFolded: false,
+
+      listMaxHeight: '78px',
+
+      audio: audioList,
+
+      theme: '#e9e9e9'
+
+    });
 
 
-/* 切歌完成后再执行 */
-ap.on('play', () => {
-
-  updateTheme();
-
-  setTimeout(fixScroll, 80);
-
-});
+    const colorThief = new ColorThief();
 
 
-/* 初始化 */
-window.onload = () => {
+    /* 变色龙 */
 
-  setTimeout(() => {
+    function chameleon() {
 
-    updateTheme();
-    fixScroll();
+      const index = ap.list.index;
 
-  }, 400);
+      const audio = audioList[index];
 
-};
+      if (!audio || !audio.cover) return;
 
-</script>
+      const img = new Image();
+
+      img.crossOrigin = 'Anonymous';
+
+      img.onload = function () {
+
+        try {
+
+          const color = colorThief.getColor(img);
+
+          const rgb = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+
+          ap.theme(rgb, index);
+
+          ap.container.style.setProperty('--zinnia-theme', rgb);
+
+        } catch (e) {}
+
+      };
+
+      img.src = audio.cover;
+
+    }
+
+
+    /* 稳定滚动修复（无累计误差） */
+
+    function scrollFix() {
+
+      const container = document.querySelector('.aplayer-list ol');
+
+      const active = document.querySelector('.aplayer-list-light');
+
+      if (!container || !active) return;
+
+      const itemHeight = active.offsetHeight;
+
+      const containerHeight = container.clientHeight;
+
+      const activeTop = active.offsetTop;
+
+      const target =
+
+        activeTop - (containerHeight / 2) + (itemHeight / 2);
+
+      container.scrollTop = target;
+
+    }
+
+
+    /* 切歌监听（延迟执行） */
+
+    ap.on('listswitch', () => {
+
+      setTimeout(() => {
+
+        chameleon();
+
+        scrollFix();
+
+      }, 300);
+
+    });
+
+
+    /* 初始加载 */
+
+    window.addEventListener('load', () => {
+
+      setTimeout(() => {
+
+        chameleon();
+
+        scrollFix();
+
+      }, 400);
+
+    });
+
+  </script>
 
 </body>
 </html>
