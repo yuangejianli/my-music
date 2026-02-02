@@ -35,7 +35,8 @@
       max-height: 78px !important;
       overflow-y: auto !important;
       margin: 0 !important;
-      padding: 0 !important;
+      /* ✨ 核心修改：增加 4px 的顶部内边距，作为文字的“保护垫” */
+      padding: 4px 0 !important; 
       scroll-behavior: smooth; 
     }
 
@@ -126,27 +127,32 @@
         try {
           const color = colorThief.getColor(img);
           const rgb = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
-          ap.theme(rgb, index); // 更新 APlayer 主题色
-          ap.container.style.setProperty('--zinnia-theme', rgb); // 更新 CSS 变量（小竖条）
+          ap.theme(rgb, index); 
+          ap.container.style.setProperty('--zinnia-theme', rgb); 
         } catch (e) {}
       };
       img.src = audio.cover;
     }
 
-    // ✨ 滚动修正函数
+    // ✨ 修复后的滚动修正函数
     function scrollFix() {
       const container = document.querySelector('.aplayer-list ol');
       const active = document.querySelector('.aplayer-list-light');
       if (container && active) {
-        // 使用最原生的方法将当前曲目滚动到视野内，不再强求“对齐”
-        active.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        /* 
+          ✨ 核心算法修改：
+          手动设置滚动高度。offsetTop 是歌曲距离顶部的绝对距离。
+          我们让它滚到 offsetTop - 4 的位置，正好抵消掉 CSS 里加的 4px padding。
+          这样歌曲就会精准地停在可见区域的最顶端，且上方留有 4px 的空隙。
+        */
+        container.scrollTop = active.offsetTop - 4;
       }
     }
 
     // 监听事件：切换歌曲时触发变色和滚动
     ap.on('listswitch', () => {
       chameleon();
-      setTimeout(scrollFix, 150); // 给一点延迟，等 DOM 渲染完再滚
+      setTimeout(scrollFix, 150); 
     });
 
     // 页面初次加载
