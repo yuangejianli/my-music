@@ -25,17 +25,18 @@
       border: none !important;
     }
 
-    /* 2️⃣ 列表容器：精准 3 首歌高度 (26px * 3 = 78px) */
+    /* 2️⃣ 列表容器：微调高度为 86px，为上下 4px 的“垫子”留出空间 */
     .aplayer .aplayer-list {
-      max-height: 78px !important;
+      max-height: 86px !important;
       overflow: hidden !important;
     }
 
     .aplayer .aplayer-list ol {
-      max-height: 78px !important;
+      max-height: 86px !important;
       overflow-y: auto !important;
       margin: 0 !important;
-      padding: 0 !important;
+      /* ✨ 核心修正：增加 4px 顶部内边距。当歌曲滚到顶时，它会停在垫子边缘，不会被切字 */
+      padding: 4px 0 !important; 
       scroll-behavior: smooth; 
       scrollbar-width: none !important;
     }
@@ -74,7 +75,7 @@
     }
 
     .aplayer .aplayer-list ol li .aplayer-list-author {
-      color: #333 !important; /* 统一颜色 */
+      color: #333 !important; 
       font-size: 12px !important;
       flex-shrink: 0;
       text-align: right;
@@ -120,7 +121,7 @@
     const ap = new APlayer({
       container: document.getElementById('aplayer'),
       listFolded: false,
-      listMaxHeight: '78px', 
+      listMaxHeight: '86px', 
       audio: audioList,
       theme: '#e9e9e9'
     });
@@ -157,27 +158,20 @@
       }, 60);
     }
 
-    // ✨ 终极滚动修复逻辑
+    // ✨ 滚动修正逻辑：精准数学居中，且考虑 4px 垫子偏移
     ap.on('listswitch', () => {
-      // 延迟 250ms，确保赢过 APlayer 的原生自动滚动
       setTimeout(() => {
         const listContainer = document.querySelector('.aplayer-list ol');
         if (listContainer) {
-          const currentIndex = ap.list.index; // 获取当前播放歌曲的序号 (从0开始)
+          const currentIndex = ap.list.index; 
           
           /* 
-            核心逻辑：
-            我们要让序号为 i 的歌曲出现在第 2 行。
-            这意味着列表的第一行应该是序号为 i - 1 的歌曲。
-            每一行的高度固定是 26px。
-            所以列表应该滚动的距离 = (i - 1) * 26。
+            修正算法：
+            要让 idx 出现在第 2 行，第一行应该是 idx - 1。
+            因为顶部有 4px padding，所以第一首曲目的物理位置是从 4px 开始的。
+            目标滚动位置 = (currentIndex - 1) * 26 + 4
           */
-          let targetPos = 0;
-          if (currentIndex > 0) {
-            targetPos = (currentIndex - 1) * 26;
-          } else {
-            targetPos = 0; // 如果播放的是第一首，滚动条就在最顶端
-          }
+          const targetPos = (currentIndex - 1) * 26 + 4;
 
           listContainer.scrollTop = targetPos;
         }
