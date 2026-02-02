@@ -19,7 +19,6 @@
       --zinnia-theme: #e9e9e9;
     }
 
-    /* 彻底清除内部线条 */
     .aplayer .aplayer-info,
     .aplayer .aplayer-list,
     .aplayer .aplayer-list ol li {
@@ -40,7 +39,6 @@
       scroll-behavior: smooth; 
     }
 
-    /* 隐藏滚动条 */
     .aplayer .aplayer-list ol::-webkit-scrollbar {
       display: none !important;
     }
@@ -54,10 +52,10 @@
       font-size: 12px !important;
       display: flex !important; 
       align-items: center !important;
-      position: relative; /* 为小竖条定位 */
+      position: relative;
     }
 
-    /* 4️⃣ 布局与颜色优化 */
+    /* 4️⃣ 颜色完全统一：歌名与歌手均使用深灰色 #333 */
     .aplayer .aplayer-list ol li .aplayer-list-index {
       color: #999;
       margin-right: 12px;
@@ -67,15 +65,15 @@
     .aplayer .aplayer-list ol li .aplayer-list-title {
       color: #333 !important; 
       font-weight: 400 !important;
-      flex-grow: 1; /* ✨ 关键：让歌名占据剩余空间，把歌手推向右侧 */
+      flex-grow: 1; 
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .aplayer .aplayer-list ol li .aplayer-list-author {
-      color: #666 !important; /* 歌手颜色 */
-      font-size: 11px !important;
+      color: #333 !important; /* 调成和歌名一样的颜色 */
+      font-size: 12px !important;
       flex-shrink: 0;
       text-align: right;
       margin-left: 10px;
@@ -86,7 +84,7 @@
       background: #f4f4f4 !important;
     }
 
-    /* 5️⃣ 小竖条修复：只在当前播放行显示 */
+    /* 5️⃣ 小竖条：只在当前播放行显示 */
     .aplayer .aplayer-list ol li .aplayer-list-cur {
       display: none !important; 
     }
@@ -158,12 +156,16 @@
       }, 60);
     }
 
+    // ✨ 修复后的居中滚动逻辑
     ap.on('listswitch', () => {
       setTimeout(() => {
         const listContainer = document.querySelector('.aplayer-list ol');
         const activeItem = document.querySelector('.aplayer-list-light');
         if (listContainer && activeItem) {
-          const targetScroll = activeItem.offsetTop;
+          // 算法优化：让当前项滚动到容器的正中心
+          // 目标滚动位置 = (当前项的顶部偏移) - (容器高度的一半) + (单行高度的一半)
+          // 在 3 行显示下，这相当于尽可能把当前项放在第 2 行。
+          const targetScroll = activeItem.offsetTop - (listContainer.offsetHeight / 2) + (activeItem.offsetHeight / 2);
           listContainer.scrollTop = targetScroll;
         }
       }, 100);
