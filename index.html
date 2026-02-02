@@ -2,17 +2,15 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css">
   <script src="https://cdn.jsdelivr.net/npm/colorthief@2.3.2/dist/color-thief.umd.js"></script>
-
   <style>
     body {
       margin: 15px;
       background: transparent;
     }
 
-    /* 极简样式 */
+    /* 1️⃣ 极简样式：无边框、无阴影 */
     .aplayer {
       border: none !important;
       box-shadow: none !important;
@@ -27,7 +25,7 @@
       border: none !important;
     }
 
-    /* 列表高度：3 行 */
+    /* 2️⃣ 列表尺寸：精准 3 首歌高度 (26px * 3 = 78px) */
     .aplayer .aplayer-list {
       max-height: 78px !important;
       overflow: hidden !important;
@@ -38,204 +36,123 @@
       overflow-y: auto !important;
       margin: 0 !important;
       padding: 0 !important;
-      box-sizing: border-box !important;
+      scroll-behavior: smooth; 
     }
 
     .aplayer .aplayer-list ol::-webkit-scrollbar {
       display: none !important;
     }
 
-    /* 单行高度 */
+    /* 3️⃣ 列表行样式 (26px) */
     .aplayer .aplayer-list ol li {
-      height: 26px !important;
+      background-image: none !important;
+      height: 26px !important;   
       line-height: 26px !important;
       padding: 0 15px !important;
       font-size: 12px !important;
-
-      display: flex !important;
+      display: flex !important; 
       align-items: center !important;
-
-      background-image: none !important;
     }
 
-    /* 标题 */
+    /* 4️⃣ 颜色统一：全部使用 #333 */
     .aplayer .aplayer-list ol li .aplayer-list-title {
-      color: #333 !important;
+      color: #333 !important; 
       font-weight: 400 !important;
-
-      flex-grow: 1;
+      flex-grow: 1; 
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
-    /* 作者 */
     .aplayer .aplayer-list ol li .aplayer-list-author {
-      color: #333 !important;
+      color: #333 !important; 
       font-size: 11px !important;
       margin-left: 10px;
     }
 
-    /* 高亮行 */
     .aplayer .aplayer-list ol li.aplayer-list-light {
       background: #f4f4f4 !important;
     }
 
-    /* 小竖条 */
+    /* 5️⃣ 小竖条：仅高亮行显示 */
     .aplayer .aplayer-list ol li .aplayer-list-cur {
-      display: none !important;
+      display: none !important; 
     }
 
     .aplayer .aplayer-list ol li.aplayer-list-light .aplayer-list-cur {
-      display: block !important;
+      display: block !important; 
       width: 2px !important;
-      height: 16px !important;
+      height: 16px !important; 
       top: 5px !important;
       background: var(--zinnia-theme) !important;
     }
-
   </style>
 </head>
 
 <body>
-
   <div id="aplayer"></div>
-
   <script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script>
 
   <script>
-
-    /* 歌单 */
-
     const audioList = [
-
       { name: 'Her Silence', artist: '何真真', url: 'music/何真真 - Her Silence.mp3', cover: 'cover/何真真 - Her Silence.jpg' },
-
       { name: 'Hurricanes', artist: 'Dido', url: 'music/Dido - Hurricanes.mp3', cover: 'cover/Dido - Hurricanes.jpg' },
-
       { name: 'Everytime you kissed me', artist: 'FictionJunction', url: 'music/FictionJunction - Everytime you kissed me.mp3', cover: 'cover/FictionJunction - Everytime you kissed me.jpg' },
-
       { name: '沙尘的彼方', artist: 'FictionJunction', url: 'music/FictionJunction - 沙尘的彼方.mp3', cover: 'cover/FictionJunction - 沙尘的彼方.jpg' },
-
       { name: 'My long forgotten cloistered sleep', artist: 'FictionJunction', url: 'music/FictionJunction - My long forgotten cloistered sleep.mp3', cover: 'cover/FictionJunction - My long forgotten cloistered sleep.jpg' },
-
       { name: '花守之丘', artist: 'FictionJunction', url: 'music/FictionJunction - 花守之丘.mp3', cover: 'cover/FictionJunction - 花守之丘.jpg' },
-
       { name: 'Rewrite The Stars', artist: 'Zendaya', url: 'music/Zendaya - Rewrite The Stars.mp3', cover: 'cover/Zendaya - Rewrite The Stars.jpg' }
-
     ];
 
-
-    /* 初始化 */
-
     const ap = new APlayer({
-
       container: document.getElementById('aplayer'),
-
       listFolded: false,
-
-      listMaxHeight: '78px',
-
+      listMaxHeight: '78px', 
       audio: audioList,
-
       theme: '#e9e9e9'
-
     });
-
 
     const colorThief = new ColorThief();
 
-
-    /* 变色龙 */
-
+    // ✨ 变色龙核心函数
     function chameleon() {
-
       const index = ap.list.index;
-
       const audio = audioList[index];
-
       if (!audio || !audio.cover) return;
 
       const img = new Image();
-
       img.crossOrigin = 'Anonymous';
-
-      img.onload = function () {
-
+      img.onload = function() {
         try {
-
           const color = colorThief.getColor(img);
-
           const rgb = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
-
-          ap.theme(rgb, index);
-
-          ap.container.style.setProperty('--zinnia-theme', rgb);
-
+          ap.theme(rgb, index); // 更新 APlayer 主题色
+          ap.container.style.setProperty('--zinnia-theme', rgb); // 更新 CSS 变量（小竖条）
         } catch (e) {}
-
       };
-
       img.src = audio.cover;
-
     }
 
-
-    /* 稳定滚动修复（无累计误差） */
-
+    // ✨ 滚动修正函数
     function scrollFix() {
-
       const container = document.querySelector('.aplayer-list ol');
-
       const active = document.querySelector('.aplayer-list-light');
-
-      if (!container || !active) return;
-
-      const itemHeight = active.offsetHeight;
-
-      const containerHeight = container.clientHeight;
-
-      const activeTop = active.offsetTop;
-
-      const target =
-
-        activeTop - (containerHeight / 2) + (itemHeight / 2);
-
-      container.scrollTop = target;
-
+      if (container && active) {
+        // 使用最原生的方法将当前曲目滚动到视野内，不再强求“对齐”
+        active.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
     }
 
-
-    /* 切歌监听（延迟执行） */
-
+    // 监听事件：切换歌曲时触发变色和滚动
     ap.on('listswitch', () => {
-
-      setTimeout(() => {
-
-        chameleon();
-
-        scrollFix();
-
-      }, 300);
-
+      chameleon();
+      setTimeout(scrollFix, 150); // 给一点延迟，等 DOM 渲染完再滚
     });
 
-
-    /* 初始加载 */
-
+    // 页面初次加载
     window.addEventListener('load', () => {
-
-      setTimeout(() => {
-
-        chameleon();
-
-        scrollFix();
-
-      }, 400);
-
+      setTimeout(chameleon, 300);
     });
-
   </script>
-
 </body>
 </html>
