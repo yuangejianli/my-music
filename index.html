@@ -37,7 +37,6 @@
       margin: 0 !important;
       padding: 0 !important;
       scroll-behavior: smooth; 
-      /* 隐藏滚动条 */
       scrollbar-width: none !important;
     }
 
@@ -45,9 +44,9 @@
       display: none !important;
     }
 
-    /* 3️⃣ 列表行样式 (精准 26px) */
+    /* 3️⃣ 列表行样式 (严格 26px) */
     .aplayer .aplayer-list ol li {
-      box-sizing: border-box !important; /* 强制盒模型，防止高度偏移 */
+      box-sizing: border-box !important;
       background-image: none !important;
       height: 26px !important;   
       line-height: 26px !important;
@@ -58,7 +57,7 @@
       position: relative;
     }
 
-    /* 4️⃣ 颜色一致性 */
+    /* 4️⃣ 颜色完全统一：全员 #333 */
     .aplayer .aplayer-list ol li .aplayer-list-index {
       color: #999;
       margin-right: 12px;
@@ -75,14 +74,13 @@
     }
 
     .aplayer .aplayer-list ol li .aplayer-list-author {
-      color: #333 !important; 
+      color: #333 !important; /* 统一颜色 */
       font-size: 12px !important;
       flex-shrink: 0;
       text-align: right;
       margin-left: 10px;
     }
 
-    /* 当前播放行背景 */
     .aplayer .aplayer-list ol li.aplayer-list-light {
       background: #f4f4f4 !important;
     }
@@ -159,23 +157,31 @@
       }, 60);
     }
 
-    // ✨ 核心修复：更鲁棒的局部滚动逻辑
+    // ✨ 终极滚动修复逻辑
     ap.on('listswitch', () => {
-      // 稍微延长延迟，确保 DOM 状态稳定
+      // 延迟 250ms，确保赢过 APlayer 的原生自动滚动
       setTimeout(() => {
         const listContainer = document.querySelector('.aplayer-list ol');
-        const activeItem = document.querySelector('.aplayer-list-light');
-        
-        if (listContainer && activeItem) {
-          // 26px 是单行高度。要把当前项放在第 2 行，
-          // 就需要把前一项 (N-1) 顶到第 1 行的位置。
-          // 所以 scrollTop 应该等于 (当前项的 offsetTop - 26)。
-          const targetScroll = activeItem.offsetTop - 26;
+        if (listContainer) {
+          const currentIndex = ap.list.index; // 获取当前播放歌曲的序号 (从0开始)
           
-          // 执行局部滚动
-          listContainer.scrollTop = targetScroll;
+          /* 
+            核心逻辑：
+            我们要让序号为 i 的歌曲出现在第 2 行。
+            这意味着列表的第一行应该是序号为 i - 1 的歌曲。
+            每一行的高度固定是 26px。
+            所以列表应该滚动的距离 = (i - 1) * 26。
+          */
+          let targetPos = 0;
+          if (currentIndex > 0) {
+            targetPos = (currentIndex - 1) * 26;
+          } else {
+            targetPos = 0; // 如果播放的是第一首，滚动条就在最顶端
+          }
+
+          listContainer.scrollTop = targetPos;
         }
-      }, 150);
+      }, 250); 
       updateThemeSafe();
     });
 
