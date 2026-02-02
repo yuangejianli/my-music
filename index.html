@@ -2,17 +2,15 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css">
   <script src="https://cdn.jsdelivr.net/npm/colorthief@2.3.2/dist/color-thief.umd.js"></script>
-
   <style>
     body {
       margin: 15px;
       background: transparent;
     }
 
-    /* 1️⃣ 阴影：当前版本的 50%，接近原版存在感 */
+    /* 1️⃣ 播放器样式 */
     .aplayer {
       border-radius: 0 !important;
       border: none !important;
@@ -24,7 +22,7 @@
       --zinnia-theme: #e9e9e9;
     }
 
-    /* 2️⃣ 列表高度与滚动逻辑（保留） */
+    /* 2️⃣ 列表高度与滚动逻辑 */
     .aplayer .aplayer-list {
       max-height: 100px !important;
       overflow: hidden !important;
@@ -36,9 +34,11 @@
       margin: 0 !important;
       padding: 0 !important;
       border: none !important;
+      /* 启用平滑滚动，但不影响外部页面 */
+      scroll-behavior: smooth; 
     }
 
-    /* 3️⃣ 彻底隐藏滚动条（保留） */
+    /* 3️⃣ 彻底隐藏滚动条 */
     .aplayer .aplayer-list,
     .aplayer .aplayer-list ol,
     .aplayer .aplayer-list * {
@@ -53,18 +53,18 @@
       display: none !important;
     }
 
-    /* 4️⃣ ❌ 不要任何分隔线（最终决定） */
+    /* 4️⃣ 分隔线样式 */
     .aplayer .aplayer-list ol li {
       border: none !important;
       background-image: none !important;
     }
 
-    /* 5️⃣ 当前播放行高亮（保留） */
+    /* 5️⃣ 当前播放行高亮 */
     .aplayer .aplayer-list ol li.aplayer-list-light {
       background: #f0f0f0 !important;
     }
 
-    /* 6️⃣ 左侧小竖条：跟随变色龙 */
+    /* 6️⃣ 左侧小竖条 */
     .aplayer .aplayer-list ol li .aplayer-list-cur {
       width: 2px !important;
       background: var(--zinnia-theme) !important;
@@ -74,7 +74,6 @@
 
 <body>
   <div id="aplayer"></div>
-
   <script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script>
 
   <script>
@@ -102,13 +101,8 @@
     function getActiveIndex() {
       const active = document.querySelector('.aplayer .aplayer-list li.aplayer-list-light');
       if (!active) return ap.list.index;
-
       const di = active.getAttribute('data-index');
-      if (di !== null && di !== '') {
-        const n = Number(di);
-        if (!Number.isNaN(n)) return n;
-      }
-      return ap.list.index;
+      return (di !== null && di !== '') ? Number(di) : ap.list.index;
     }
 
     function updateThemeSafe() {
@@ -121,7 +115,6 @@
         const img = new Image();
         img.crossOrigin = 'Anonymous';
         img.referrerPolicy = 'no-referrer';
-
         img.onload = () => {
           try {
             const c = colorThief.getColor(img);
@@ -130,16 +123,20 @@
             ap.container.style.setProperty('--zinnia-theme', themeColor);
           } catch (e) {}
         };
-
         img.src = imgUrl + (imgUrl.includes('?') ? '&' : '?') + 'cb=' + Date.now();
       }, 60);
     }
 
+    // ✨ 修复后的滚动逻辑：仅在内部容器滚动，绝不触发外部页面跳转
     ap.on('listswitch', () => {
       setTimeout(() => {
+        const listContainer = document.querySelector('.aplayer-list ol');
         const activeItem = document.querySelector('.aplayer-list-light');
-        if (activeItem) {
-          activeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        if (listContainer && activeItem) {
+          // 计算当前曲目相对于列表顶部的偏移量
+          const targetScroll = activeItem.offsetTop;
+          // 直接设置内部容器的滚动位置，这种方法绝不会影响外层 Notion 页面
+          listContainer.scrollTop = targetScroll;
         }
       }, 100);
       updateThemeSafe();
