@@ -25,10 +25,17 @@
       border: none !important;
     }
 
-    /* 2️⃣ 列表容器：精准 3 首歌高度 (26px * 3 = 78px) */
+    /* 2️⃣ 列表尺寸：精准 3 首歌高度 (26px * 3 = 78px) */
+    /* 🌟 核心修改：利用 CSS 强制初始隐藏 */
     .aplayer .aplayer-list {
+      display: none !important; /* 默认彻底消失 */
       max-height: 78px !important;
       overflow: hidden !important;
+    }
+    
+    /* 只有当播放器被触发展开类名 (.aplayer-withlist) 时才显示 */
+    .aplayer.aplayer-withlist .aplayer-list {
+      display: block !important;
     }
 
     .aplayer .aplayer-list ol {
@@ -99,11 +106,6 @@
       top: 5px !important;
       background: var(--zinnia-theme) !important;
     }
-
-    /* 🌟 CSS 补丁：强制默认状态不显示列表，防止 JS 失效 */
-    .aplayer:not(.aplayer-withlist) .aplayer-list {
-      display: none !important;
-    }
   </style>
 </head>
 
@@ -112,6 +114,9 @@
   <script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script>
 
   <script>
+    // ✨ 强力重置：清除浏览器可能存在的旧播放器记录，确保读取 listFolded: true
+    localStorage.removeItem('aplayer-setting-unique-final');
+
     const audioList = [
       { name: 'Her Silence', artist: '何真真', url: 'music/何真真 - Her Silence.mp3', cover: 'cover/何真真 - Her Silence.jpg' },
       { name: 'Hurricanes', artist: 'Dido', url: 'music/Dido - Hurricanes.mp3', cover: 'cover/Dido - Hurricanes.jpg' },
@@ -124,8 +129,8 @@
 
     const ap = new APlayer({
       container: document.getElementById('aplayer'),
-      listFolded: true, // ✨ 1. 核心开关
-      storageName: 'aplayer-setting-unique-v8', // ✨ 2. 强制清除浏览器记忆
+      listFolded: true, // 默认折叠
+      storageName: 'aplayer-setting-unique-final', // 对应上面的重置 ID
       listMaxHeight: '78px', 
       audio: audioList,
       theme: '#e9e9e9'
@@ -177,7 +182,7 @@
 
     window.addEventListener('load', () => {
       setTimeout(updateThemeSafe, 300);
-      // ✨ 3. 初始加载后再次强制折叠一次列表
+      // 双重保险：强制隐藏列表
       ap.list.hide();
     });
   </script>
