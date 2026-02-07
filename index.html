@@ -25,17 +25,18 @@
       border: none !important;
     }
 
-    /* 彻底隐藏歌词占位横杠 */
-    .aplayer .aplayer-lrc {
+    /* 彻底隐藏歌词区域及那个多余的歌词按钮 */
+    .aplayer .aplayer-lrc,
+    .aplayer .aplayer-info .aplayer-controller .aplayer-time .aplayer-icon-lrc {
         display: none !important;
     }
 
-    /* 🌟 核心修正：美化并对齐所有控制按钮 */
+    /* 🌟 保持并优化控制按钮对齐 */
     .aplayer .aplayer-info .aplayer-controller .aplayer-time {
         display: flex !important;
         align-items: center !important;
     }
-    /* 强制显示所有功能图标（包括你圈的那个列表按钮） */
+    /* 强制显示：上一曲、下一曲、循环/随机、列表 按钮 */
     .aplayer .aplayer-info .aplayer-controller .aplayer-time .aplayer-icon {
         display: inline-block !important;
         width: 18px !important;
@@ -148,12 +149,14 @@
     const ap = new APlayer({
       container: document.getElementById('aplayer'),
       listFolded: true, 
-      /* ✨ 这里使用随机 ID 确保每次打开都遵循 listFolded: true */
-      storageName: 'ap-storage-new-' + Math.random(), 
+      storageName: 'ap-storage-v2026-' + Math.random(), 
       listMaxHeight: '78px', 
       audio: audioList,
       theme: '#e9e9e9'
     });
+
+    ap.list.hide();
+    document.getElementById('aplayer').classList.remove('aplayer-withlist');
 
     const colorThief = new ColorThief();
     let themeTimer = null;
@@ -200,6 +203,10 @@
     });
 
     window.addEventListener('load', () => {
+      setTimeout(() => {
+          ap.list.hide();
+          document.getElementById('aplayer').classList.remove('aplayer-withlist');
+      }, 100);
       setTimeout(updateThemeSafe, 300);
     });
   </script>
