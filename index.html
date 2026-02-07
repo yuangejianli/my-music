@@ -25,9 +25,8 @@
       border: none !important;
     }
 
-    /* ✨ 精准隐藏：只隐藏歌词区域和歌词按钮 */
-    .aplayer .aplayer-lrc, 
-    .aplayer .aplayer-icon-lrc {
+    /* ✨ 彻底屏蔽歌词区域 */
+    .aplayer .aplayer-lrc {
         display: none !important;
     }
 
@@ -36,14 +35,23 @@
         display: flex !important;
         align-items: center !important;
     }
-    /* 强制显示：上一曲、下一曲、循环/随机、列表 按钮 */
-    .aplayer .aplayer-info .aplayer-controller .aplayer-time .aplayer-icon {
+
+    /* 🌟 核心修正：强制显示除歌词图标 (.aplayer-icon-lrc) 以外的所有图标 */
+    .aplayer .aplayer-info .aplayer-controller .aplayer-time .aplayer-icon:not(.aplayer-icon-lrc) {
         display: inline-block !important;
         width: 18px !important;
         height: 18px !important;
         margin-left: 5px !important;
         opacity: 0.7 !important;
     }
+    
+    /* 专门给歌词图标下死命令：绝对隐藏 */
+    .aplayer-icon-lrc, .aplayer-icon-lrc-inner {
+        display: none !important;
+        width: 0 !important;
+        visibility: hidden !important;
+    }
+
     .aplayer .aplayer-info .aplayer-controller .aplayer-time .aplayer-icon path {
         fill: #444 !important;
     }
@@ -53,7 +61,7 @@
       max-height: 78px !important;
       overflow: hidden !important;
     }
-    /* 确保列表展开时显示正常 */
+    /* 确保点击列表按钮时能正常显示 */
     .aplayer.aplayer-withlist .aplayer-list {
       display: block !important;
     }
@@ -133,8 +141,7 @@
     const ap = new APlayer({
       container: document.getElementById('aplayer'),
       listFolded: true, 
-      // 使用随机后缀确保每次加载都是从折叠状态开始
-      storageName: 'ap-storage-vfinal-' + Math.random(), 
+      storageName: 'ap-storage-vfinal-v2-' + Math.random(), 
       listMaxHeight: '78px', 
       audio: audioList,
       theme: '#e9e9e9'
