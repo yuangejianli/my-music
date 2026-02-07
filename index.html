@@ -25,14 +25,10 @@
       border: none !important;
     }
 
-    /* ✨ 强力 CSS 屏蔽歌词组件 */
+    /* ✨ 精准隐藏：只隐藏歌词区域和歌词按钮 */
     .aplayer .aplayer-lrc, 
-    .aplayer .aplayer-icon-lrc,
-    .aplayer-icon-lrc {
+    .aplayer .aplayer-icon-lrc {
         display: none !important;
-        visibility: hidden !important;
-        width: 0 !important;
-        height: 0 !important;
     }
 
     /* 2️⃣ 控制按钮排版对齐 */
@@ -56,6 +52,10 @@
     .aplayer .aplayer-list {
       max-height: 78px !important;
       overflow: hidden !important;
+    }
+    /* 确保列表展开时显示正常 */
+    .aplayer.aplayer-withlist .aplayer-list {
+      display: block !important;
     }
 
     .aplayer .aplayer-list ol {
@@ -133,7 +133,8 @@
     const ap = new APlayer({
       container: document.getElementById('aplayer'),
       listFolded: true, 
-      storageName: 'ap-storage-fixed-' + Math.random(), 
+      // 使用随机后缀确保每次加载都是从折叠状态开始
+      storageName: 'ap-storage-vfinal-' + Math.random(), 
       listMaxHeight: '78px', 
       audio: audioList,
       theme: '#e9e9e9'
@@ -183,19 +184,8 @@
       updateThemeSafe();
     });
 
-    // ✨ 物理删除逻辑：加载完成后强制从网页代码里剔除歌词图标
     window.addEventListener('load', () => {
-      setTimeout(() => {
-          // 关闭列表
-          ap.list.hide();
-          document.getElementById('aplayer').classList.remove('aplayer-withlist');
-          
-          // 彻底删除歌词图标元素
-          const lrcBtn = document.querySelector('.aplayer-icon-lrc');
-          if (lrcBtn) lrcBtn.remove();
-          
-          updateThemeSafe();
-      }, 150);
+      setTimeout(updateThemeSafe, 300);
     });
   </script>
 </body>
