@@ -9,124 +9,123 @@
       margin: 15px;
       background: transparent;
     }
-code
-Code
-/* 1️⃣ 基础样式：无边框、无阴影 */
-.aplayer {
-  border: none !important;
-  box-shadow: none !important;
-  background: #fff;
-  border-radius: 0 !important;
-  --zinnia-theme: #e9e9e9;
-}
 
-.aplayer .aplayer-info,
-.aplayer .aplayer-list,
-.aplayer .aplayer-list ol li {
-  border: none !important;
-}
+    /* 1️⃣ 基础样式：无边框、无阴影 */
+    .aplayer {
+      border: none !important;
+      box-shadow: none !important;
+      background: #fff;
+      border-radius: 0 !important;
+      --zinnia-theme: #e9e9e9;
+    }
 
-/* 2️⃣ 列表容器：精准 3 首歌高度 (26px * 3 = 78px) */
-.aplayer .aplayer-list {
-  max-height: 78px !important;
-  overflow: hidden !important;
-}
+    .aplayer .aplayer-info,
+    .aplayer .aplayer-list,
+    .aplayer .aplayer-list ol li {
+      border: none !important;
+    }
 
-.aplayer .aplayer-list ol {
-  max-height: 78px !important;
-  overflow-y: auto !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  scroll-behavior: smooth; 
-  scrollbar-width: none !important;
-}
+    /* 2️⃣ 列表容器：精准 3 首歌高度 (26px * 3 = 78px) */
+    .aplayer .aplayer-list {
+      max-height: 78px !important;
+      overflow: hidden !important;
+    }
 
-.aplayer .aplayer-list ol::-webkit-scrollbar {
-  display: none !important;
-}
+    .aplayer .aplayer-list ol {
+      max-height: 78px !important;
+      overflow-y: auto !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      scroll-behavior: smooth; 
+      scrollbar-width: none !important;
+    }
 
-/* 3️⃣ 列表行样式 (严格 26px) */
-.aplayer .aplayer-list ol li {
-  box-sizing: border-box !important;
-  background-image: none !important;
-  height: 26px !important;   
-  line-height: 26px !important;
-  padding: 0 15px !important;
-  font-size: 12px !important;
-  display: flex !important; 
-  align-items: center !important;
-  position: relative;
-}
+    .aplayer .aplayer-list ol::-webkit-scrollbar {
+      display: none !important;
+    }
 
-/* 4️⃣ 颜色完全统一：全员 #333 */
-.aplayer .aplayer-list ol li .aplayer-list-index {
-  color: #999;
-  margin-right: 12px;
-  flex-shrink: 0;
-}
+    /* 3️⃣ 列表行样式 (严格 26px) */
+    .aplayer .aplayer-list ol li {
+      box-sizing: border-box !important;
+      background-image: none !important;
+      height: 26px !important;   
+      line-height: 26px !important;
+      padding: 0 15px !important;
+      font-size: 12px !important;
+      display: flex !important; 
+      align-items: center !important;
+      position: relative;
+    }
 
-.aplayer .aplayer-list ol li .aplayer-list-title {
-  color: #333 !important; 
-  font-weight: 400 !important;
-  flex-grow: 1; 
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+    /* 4️⃣ 颜色完全统一：全员 #333 */
+    .aplayer .aplayer-list ol li .aplayer-list-index {
+      color: #999;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
 
-.aplayer .aplayer-list ol li .aplayer-list-author {
-  color: #333 !important; 
-  font-size: 12px !important;
-  flex-shrink: 0;
-  text-align: right;
-  margin-left: 10px;
-}
+    .aplayer .aplayer-list ol li .aplayer-list-title {
+      color: #333 !important; 
+      font-weight: 400 !important;
+      flex-grow: 1; 
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-.aplayer .aplayer-list ol li.aplayer-list-light {
-  background: #f4f4f4 !important;
-}
+    .aplayer .aplayer-list ol li .aplayer-list-author {
+      color: #333 !important; 
+      font-size: 12px !important;
+      flex-shrink: 0;
+      text-align: right;
+      margin-left: 10px;
+    }
 
-/* 5️⃣ 小竖条 */
-.aplayer .aplayer-list ol li .aplayer-list-cur {
-  display: none !important; 
-}
+    .aplayer .aplayer-list ol li.aplayer-list-light {
+      background: #f4f4f4 !important;
+    }
 
-.aplayer .aplayer-list ol li.aplayer-list-light .aplayer-list-cur {
-  display: block !important; 
-  position: absolute;
-  left: 0;
-  width: 2px !important;
-  height: 16px !important; 
-  top: 5px !important;
-  background: var(--zinnia-theme) !important;
-}
+    /* 5️⃣ 小竖条 */
+    .aplayer .aplayer-list ol li .aplayer-list-cur {
+      display: none !important; 
+    }
+
+    .aplayer .aplayer-list ol li.aplayer-list-light .aplayer-list-cur {
+      display: block !important; 
+      position: absolute;
+      left: 0;
+      width: 2px !important;
+      height: 16px !important; 
+      top: 5px !important;
+      background: var(--zinnia-theme) !important;
+    }
   </style>
 </head>
+
 <body>
   <div id="aplayer"></div>
   <script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script>
+
   <script>
+    // ✨ 核心修正：使用 encodeURI 确保包含日语和空格的路径能被浏览器正确识别
     const audioList = [
-      { name: '温柔的黎明', artist: '南里侑香', url: 'music/南里侑香 - 温柔的黎明.m4a', cover: 'cover/南里侑香 - 温柔的黎明.jpg' },
-      { name: 'Her Silence', artist: '何真真', url: 'music/何真真 - Her Silence.mp3', cover: 'cover/何真真 - Her Silence.jpg' },
-      { name: 'Hurricanes', artist: 'Dido', url: 'music/Dido - Hurricanes.mp3', cover: 'cover/Dido - Hurricanes.jpg' },
-      { name: 'Everytime you kissed me', artist: 'FictionJunction', url: 'music/FictionJunction - Everytime you kissed me.mp3', cover: 'cover/FictionJunction - Everytime you kissed me.jpg' },
-      { name: '沙尘的彼方', artist: 'FictionJunction', url: 'music/FictionJunction - 沙尘的彼方.mp3', cover: 'cover/FictionJunction - 沙尘的彼方.jpg' },
-      { name: 'My long forgotten cloistered sleep', artist: 'FictionJunction', url: 'music/FictionJunction - My long forgotten cloistered sleep.mp3', cover: 'cover/FictionJunction - My long forgotten cloistered sleep.jpg' },
-      { name: '花守之丘', artist: 'FictionJunction', url: 'music/FictionJunction - 花守之丘.mp3', cover: 'cover/FictionJunction - 花守之丘.jpg' },
-      { name: 'Rewrite The Stars', artist: 'Zendaya', url: 'music/Zendaya - Rewrite The Stars.mp3', cover: 'cover/Zendaya - Rewrite The Stars.jpg' }
+      { 
+        name: '温柔的黎明', 
+        artist: '南里侑香', 
+        url: encodeURI('music/南里侑香 - 温柔的黎明.m4a'), 
+        cover: encodeURI('cover/南里侑香 - 温柔的黎明.jpg') 
+      }
     ];
 
     const ap = new APlayer({
       container: document.getElementById('aplayer'),
-      listFolded: true, // 核心：默认折叠
-      storageName: 'ap-storage-' + Math.random(), // ✨ 暴力：每次打开都是一个全新的 ID，不准记忆状态
+      listFolded: true, 
+      storageName: 'ap-storage-' + Math.random(), 
       listMaxHeight: '78px', 
       audio: audioList,
       theme: '#e9e9e9'
     });
 
-    // ✨ 暴力：强制立即关闭列表并移除类名
     ap.list.hide();
     document.getElementById('aplayer').classList.remove('aplayer-withlist');
 
@@ -175,7 +174,6 @@ Code
     });
 
     window.addEventListener('load', () => {
-      // ✨ 暴力：加载完成后再关一次
       setTimeout(() => {
           ap.list.hide();
           document.getElementById('aplayer').classList.remove('aplayer-withlist');
