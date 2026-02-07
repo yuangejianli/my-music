@@ -6,106 +6,15 @@
   <script src="https://cdn.jsdelivr.net/npm/colorthief@2.3.2/dist/color-thief.umd.js"></script>
   <style>
     body {
-      margin: 15px;
+      margin: 20px;
       background: transparent;
     }
-
-    /* 1️⃣ 基础样式：无边框、无阴影 */
-    .aplayer {
-      border: none !important;
-      box-shadow: none !important;
-      background: #fff;
-      border-radius: 0 !important;
-      --zinnia-theme: #e9e9e9;
-    }
-
-    .aplayer .aplayer-info,
-    .aplayer .aplayer-list,
-    .aplayer .aplayer-list ol li {
-      border: none !important;
-    }
-
-    /* 2️⃣ 列表容器：精准 3 首歌高度 (26px * 3 = 78px) */
-    .aplayer .aplayer-list {
-      max-height: 78px !important;
-      overflow: hidden !important;
-    }
-
-    .aplayer .aplayer-list ol {
-      max-height: 78px !important;
-      overflow-y: auto !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      scroll-behavior: smooth; 
-      scrollbar-width: none !important;
-    }
-
-    .aplayer .aplayer-list ol::-webkit-scrollbar {
-      display: none !important;
-    }
-
-    /* 3️⃣ 列表行样式 (严格 26px) */
-    .aplayer .aplayer-list ol li {
-      box-sizing: border-box !important;
-      background-image: none !important;
-      height: 26px !important;   
-      line-height: 26px !important;
-      padding: 0 15px !important;
-      font-size: 12px !important;
-      display: flex !important; 
-      align-items: center !important;
-      position: relative;
-    }
-
-    /* 4️⃣ 颜色完全统一：全员 #333 */
-    .aplayer .aplayer-list ol li .aplayer-list-index {
-      color: #999;
-      margin-right: 12px;
-      flex-shrink: 0;
-    }
-
-    .aplayer .aplayer-list ol li .aplayer-list-title {
-      color: #333 !important; 
-      font-weight: 400 !important;
-      flex-grow: 1; 
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .aplayer .aplayer-list ol li .aplayer-list-author {
-      color: #333 !important; 
-      font-size: 12px !important;
-      flex-shrink: 0;
-      text-align: right;
-      margin-left: 10px;
-    }
-
-    .aplayer .aplayer-list ol li.aplayer-list-light {
-      background: #f4f4f4 !important;
-    }
-
-    /* 5️⃣ 小竖条 */
-    .aplayer .aplayer-list ol li .aplayer-list-cur {
-      display: none !important; 
-    }
-
-    .aplayer .aplayer-list ol li.aplayer-list-light .aplayer-list-cur {
-      display: block !important; 
-      position: absolute;
-      left: 0;
-      width: 2px !important;
-      height: 16px !important; 
-      top: 5px !important;
-      background: var(--zinnia-theme) !important;
-    }
+    /* 这里没有任何自定义 CSS，全部走 APlayer 默认样式 */
   </style>
 </head>
-
 <body>
   <div id="aplayer"></div>
   <script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script>
-
   <script>
     const audioList = [
       { name: '温柔的黎明', artist: '南里侑香', url: encodeURI('music/南里侑香 - 温柔的黎明.m4a'), cover: encodeURI('cover/南里侑香 - 温柔的黎明.jpg') },
@@ -120,25 +29,18 @@
 
     const ap = new APlayer({
       container: document.getElementById('aplayer'),
-      listFolded: true, 
-      storageName: 'ap-storage-' + Math.random(), 
-      listMaxHeight: '78px', 
+      listFolded: false, // 默认展开，让你能看到完整的按钮
       audio: audioList,
-      theme: '#e9e9e9'
+      theme: '#b7daff',
+      listMaxHeight: '250px' // 给列表充足的空间，不压扁 UI
     });
-
-    // ✨ 暴力隐藏逻辑
-    ap.list.hide();
-    document.getElementById('aplayer').classList.remove('aplayer-withlist');
 
     const colorThief = new ColorThief();
     let themeTimer = null;
 
     function getActiveIndex() {
       const active = document.querySelector('.aplayer-list-light');
-      if (!active) return ap.list.index;
-      const di = active.getAttribute('data-index');
-      return (di !== null && di !== '') ? Number(di) : ap.list.index;
+      return active ? Number(active.getAttribute('data-index')) : ap.list.index;
     }
 
     function updateThemeSafe() {
@@ -147,7 +49,6 @@
         const index = getActiveIndex();
         const imgUrl = audioList[index]?.cover;
         if (!imgUrl) return;
-
         const img = new Image();
         img.crossOrigin = 'Anonymous';
         img.referrerPolicy = 'no-referrer';
@@ -156,30 +57,15 @@
             const c = colorThief.getColor(img);
             const themeColor = `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
             ap.theme(themeColor, index);
-            ap.container.style.setProperty('--zinnia-theme', themeColor);
           } catch (e) {}
         };
         img.src = imgUrl + (imgUrl.includes('?') ? '&' : '?') + 'cb=' + Date.now();
       }, 60);
     }
 
-    ap.on('listswitch', () => {
-      setTimeout(() => {
-        const listContainer = document.querySelector('.aplayer-list ol');
-        if (listContainer) {
-          const currentIndex = ap.list.index;
-          let targetPos = (currentIndex > 0) ? (currentIndex - 1) * 26 : 0;
-          listContainer.scrollTop = targetPos;
-        }
-      }, 250); 
-      updateThemeSafe();
-    });
+    ap.on('listswitch', updateThemeSafe);
 
     window.addEventListener('load', () => {
-      setTimeout(() => {
-          ap.list.hide();
-          document.getElementById('aplayer').classList.remove('aplayer-withlist');
-      }, 100);
       setTimeout(updateThemeSafe, 300);
     });
   </script>
