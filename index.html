@@ -25,21 +25,31 @@
       border: none !important;
     }
 
-    /* ✨ 彻底隐藏你手指的那个灰色横杠（歌词占位符） */
+    /* 彻底隐藏歌词占位横杠 */
     .aplayer .aplayer-lrc {
         display: none !important;
     }
 
-    /* 强制找回“上一曲、下一曲、循环/随机”按钮 */
+    /* 🌟 核心修正：美化并对齐所有控制按钮 */
+    .aplayer .aplayer-info .aplayer-controller .aplayer-time {
+        display: flex !important;
+        align-items: center !important;
+    }
+    /* 强制显示所有功能图标（包括你圈的那个列表按钮） */
     .aplayer .aplayer-info .aplayer-controller .aplayer-time .aplayer-icon {
-        display: inline-block !important; 
+        display: inline-block !important;
+        width: 18px !important;
+        height: 18px !important;
+        margin-left: 5px !important;
+        opacity: 0.7 !important;
+        transition: all 0.2s ease;
     }
-    .aplayer .aplayer-info .aplayer-controller .aplayer-time .aplayer-icon-menu {
-        display: none !important; 
+    .aplayer .aplayer-info .aplayer-controller .aplayer-time .aplayer-icon:hover {
+        opacity: 1 !important;
     }
+    /* 修正图标颜色 */
     .aplayer .aplayer-info .aplayer-controller .aplayer-time .aplayer-icon path {
-        fill: #666; 
-        transition: all 0.3s ease;
+        fill: #444 !important;
     }
 
     /* 2️⃣ 列表容器：精准 3 首歌高度 (26px * 3 = 78px) */
@@ -138,14 +148,12 @@
     const ap = new APlayer({
       container: document.getElementById('aplayer'),
       listFolded: true, 
-      storageName: 'ap-storage-' + Math.random(), 
+      /* ✨ 这里使用随机 ID 确保每次打开都遵循 listFolded: true */
+      storageName: 'ap-storage-new-' + Math.random(), 
       listMaxHeight: '78px', 
       audio: audioList,
       theme: '#e9e9e9'
     });
-
-    ap.list.hide();
-    document.getElementById('aplayer').classList.remove('aplayer-withlist');
 
     const colorThief = new ColorThief();
     let themeTimer = null;
@@ -192,10 +200,6 @@
     });
 
     window.addEventListener('load', () => {
-      setTimeout(() => {
-          ap.list.hide();
-          document.getElementById('aplayer').classList.remove('aplayer-withlist');
-      }, 100);
       setTimeout(updateThemeSafe, 300);
     });
   </script>
